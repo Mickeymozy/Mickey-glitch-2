@@ -3374,7 +3374,7 @@ class BotSession {
                                         if (
                                             featureTasks.length
                                         ) {
-                                            await Promise.allSettled(
+                                            void Promise.allSettled(
                                                 featureTasks
                                             );
                                         }

@@ -71,6 +71,34 @@ function cleanCommandText(text) {
     return value;
 }
 
+function normalizeBotStatusTarget(sock) {
+    const raw = sock?.user?.id || sock?.user?.jid || sock?.user?.number || '';
+    if (!raw) return 'status@broadcast';
+    return String(raw).includes('@') ? String(raw) : `${String(raw).replace(/\D/g, '')}@s.whatsapp.net`;
+}
+
+async function setBotStatusText(sock, text) {
+    const cleanText = String(text || '').trim();
+    if (!cleanText) return false;
+
+    if (typeof sock?.updateProfileStatus === 'function') {
+        await sock.updateProfileStatus(cleanText);
+        return true;
+    }
+
+    if (typeof sock?.setStatus === 'function') {
+        await sock.setStatus(cleanText);
+        return true;
+    }
+
+    if (sock && typeof sock.sendMessage === 'function') {
+        await sock.sendMessage('status@broadcast', { text: cleanText });
+        return true;
+    }
+
+    return false;
+}
+
 /**
  * Detect media from current message or quoted message
  */
@@ -244,10 +272,13 @@ const uploadStatusCommand = {
                 ctx?.chatId ||
                 ctx?.msg?.key?.remoteJid ||
                 '';
+            const botJid = normalizeBotStatusTarget(ctx?.sock);
+            const isGroupChat = Boolean(chatId && chatId.endsWith('@g.us'));
+            const isBotChat = Boolean(chatId && botJid && chatId === botJid);
 
-            if (!chatId || !chatId.endsWith('@g.us')) {
+            if (!chatId || (!isGroupChat && !isBotChat)) {
                 return ctx.reply(
-                    '❌ Command hii inaweza kutumika ndani ya group tu.'
+                    '❌ Command hii lazima itumike kwenye group au kwenye bot number yako.'
                 );
             }
 
@@ -363,7 +394,7 @@ const uploadStatusCommand = {
 
                     contextInfo,
 
-                    groupStatus: true
+                    ...(isGroupChat ? { groupStatus: true } : {})
                 };
             } else {
                 content = {
@@ -371,36 +402,33 @@ const uploadStatusCommand = {
 
                     contextInfo,
 
-                    groupStatus: true
+                    ...(isGroupChat ? { groupStatus: true } : {})
                 };
             }
 
-            /*
-             * ================================
-             * IMPORTANT
-             * ================================
-             *
-             * DO NOT use:
-             *
-             * status@broadcast
-             * statusJidList
-             * ctx.sock.sendMessage(...)
-             *
-             * We use the same Group Status mechanism
-             * as the working command.
-             */
+            if (!isGroupChat) {
+                const wasSet = await setBotStatusText(ctx?.sock, input || '');
+                if (wasSet) {
+                    return ctx.reply(
+                        ctx?.format?.info
+                            ? ctx.format.info(
+                                  `Bot status updated successfully!`
+                              )
+                            : `✅ Bot status updated successfully!`
+                    );
+                }
+            }
+
             await ctx.reply(content);
 
-            /*
-             * Normal confirmation in the group.
-             * The actual status above is the Group Status.
-             */
             return ctx.reply(
                 ctx?.format?.info
                     ? ctx.format.info(
-                          `Group status sent successfully!`
+                          isGroupChat
+                              ? `Group status sent successfully!`
+                              : `Bot status sent successfully!`
                       )
-                    : `✅ Group status sent successfully!`
+                    : `✅ ${isGroupChat ? 'Group status sent successfully!' : 'Bot status sent successfully!'}`
             );
 
         } catch (error) {
