@@ -1416,6 +1416,7 @@ app.post('/api/palmpesa/status', requirePersistence, async (req, res) => {
 const sessions = {};
 const userSockets = {};
 const messageLogs = {};
+const outboundMessageLimits = new Map();
 const dashboardStats = {
     totalMessages: 0,
     users: new Set()
@@ -1493,6 +1494,81 @@ function emitDashboardBotState() {
 function emitDashboardStats() {
     io.emit('dashboard-stats', getDashboardStats());
 }
+
+app.post('/api/bots/:botId/verify-recipient', requirePersistence, async (req, res) => {
+    const account = getAccountFromRequest(req);
+    if (!account) return res.status(401).json({ error: 'Login required.' });
+
+    const botId = String(req.params.botId || '').trim();
+    if (!account.botIds?.includes(botId)) {
+        return res.status(403).json({ error: 'Huna ruhusa ya kutumia bot hii.' });
+    }
+
+    const phone = normalizeAccountPhone(req.body?.phone);
+    if (!isValidInternationalPhone(phone)) {
+        return res.status(400).json({ error: 'Weka namba halali yenye country code.' });
+    }
+
+    const session = sessions[botId];
+    if (!session?.isConnected || typeof session.sock?.onWhatsApp !== 'function') {
+        return res.status(409).json({ error: 'Bot hii haiko online au haiwezi kukagua namba kwa sasa.' });
+    }
+
+    try {
+        const matches = await session.sock.onWhatsApp(phone);
+        const recipient = (Array.isArray(matches) ? matches : matches ? [matches] : [])
+            .find((match) => match?.exists);
+        return res.json({ success: true, exists: Boolean(recipient) });
+    } catch (error) {
+        session.sendLog(`WhatsApp number check failed: ${error.message}`, 'warn');
+        return res.status(502).json({ error: 'WhatsApp imeshindwa kuthibitisha namba hii kwa sasa.' });
+    }
+});
+
+app.post('/api/bots/:botId/messages', requirePersistence, async (req, res) => {
+    const account = getAccountFromRequest(req);
+    if (!account) return res.status(401).json({ error: 'Login required.' });
+
+    const botId = String(req.params.botId || '').trim();
+    if (!account.botIds?.includes(botId)) {
+        return res.status(403).json({ error: 'Huna ruhusa ya kutumia bot hii.' });
+    }
+
+    const phone = normalizeAccountPhone(req.body?.phone);
+    if (!isValidInternationalPhone(phone)) {
+        return res.status(400).json({ error: 'Weka namba halali yenye country code.' });
+    }
+
+    const text = String(req.body?.text || '').trim();
+    if (!text || text.length > 4000) {
+        return res.status(400).json({ error: 'Ujumbe uwe na herufi 1 hadi 4000.' });
+    }
+
+    const session = sessions[botId];
+    if (!session?.isConnected || typeof session.sock?.sendMessage !== 'function') {
+        return res.status(409).json({ error: 'Bot hii haiko online. Unganisha bot kisha jaribu tena.' });
+    }
+
+    const now = Date.now();
+    const limit = outboundMessageLimits.get(account.id);
+    if (limit && now - limit.startedAt < 60_000 && limit.count >= 10) {
+        res.set('Retry-After', String(Math.ceil((60_000 - (now - limit.startedAt)) / 1000)));
+        return res.status(429).json({ error: 'Umefikia kikomo cha ujumbe 10 kwa dakika. Jaribu tena baadaye.' });
+    }
+    outboundMessageLimits.set(account.id, {
+        startedAt: limit && now - limit.startedAt < 60_000 ? limit.startedAt : now,
+        count: limit && now - limit.startedAt < 60_000 ? limit.count + 1 : 1
+    });
+
+    try {
+        await session.sock.sendMessage(`${phone}@s.whatsapp.net`, { text });
+        session.sendLog(`Dashboard message sent to ...${phone.slice(-4)}`, 'success');
+        return res.json({ success: true, recipient: phone });
+    } catch (error) {
+        session.sendLog(`Dashboard message failed for ...${phone.slice(-4)}: ${error.message}`, 'error');
+        return res.status(502).json({ error: 'WhatsApp imeshindwa kutuma ujumbe. Hakikisha namba inapokea ujumbe.' });
+    }
+});
 
 
 /* =========================================================

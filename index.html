@@ -385,6 +385,12 @@
   .tab-panel{display:none;animation:tabIn .28s ease both;}
   .tab-panel.active{display:block;}
   .stats-grid.tab-panel.active{display:grid;}
+  .message-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;}
+  .message-form-grid .field:last-child{grid-column:1/-1;}
+  .message-compose-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .message-recipient-status{display:block;margin-top:5px;font-size:.76rem;color:var(--text-3);}
+  .message-recipient-status.valid{color:var(--success);}
+  .message-recipient-status.invalid{color:var(--danger);}
   @keyframes tabIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
 
   /* ============================================================
@@ -436,6 +442,8 @@
   @media(max-width:600px){
     .pack-grid{grid-template-columns:1fr;}
     .settings-grid{grid-template-columns:1fr;}
+    .message-form-grid{grid-template-columns:1fr;}
+    .message-form-grid .field:last-child{grid-column:auto;}
   }
   </style>
 </head>
@@ -485,6 +493,7 @@
   <a href="#bots" class="nav-item" data-tab="bots">
     <i class="fas fa-robot"></i> <span>Bot Manager</span> <span class="badge" id="botsBadge">0</span>
   </a>
+  <a href="#messages" class="nav-item" data-tab="messages"><i class="fas fa-paper-plane"></i> <span>Messages</span></a>
   <a href="#wallet" class="nav-item" data-tab="wallet"><i class="fas fa-wallet"></i> <span>Coin Wallet</span></a>
   <a href="#store" class="nav-item" data-tab="store"><i class="fas fa-store"></i> <span>Marketplace</span></a>
 
@@ -641,6 +650,25 @@
     </div>
   </section>
 
+  <section class="section tab-panel" id="messages" data-panel="messages">
+    <div class="section-head">
+      <div class="section-title"><h2>Send a WhatsApp message</h2><p>Tuma ujumbe mmoja kwa namba uliyochagua kupitia bot yako iliyo online.</p></div>
+    </div>
+    <form id="sendMessageForm" class="surface">
+      <div class="message-form-grid">
+        <div class="field"><label for="messageBotSelect">Bot</label><select id="messageBotSelect" required><option value="">Hakuna bot iliyounganishwa</option></select></div>
+        <div class="field"><label for="messageRecipient">Namba ya mpokeaji</label><input id="messageRecipient" type="tel" placeholder="+255 712 345 678" autocomplete="tel" inputmode="tel" required><button class="btn btn-ghost btn-sm" id="verifyRecipientButton" type="button" style="margin-top:8px;"><i class="fas fa-user-check"></i> Kagua namba ya WhatsApp</button><small id="recipientCheckStatus" class="message-recipient-status" role="status" aria-live="polite"></small></div>
+        <div class="field"><label for="messageTemplate">Ujumbe wa haraka</label><select id="messageTemplate"><option value="">Chagua template</option><option value="greeting">Salamu</option><option value="service">Taarifa</option><option value="thanks">Shukrani</option></select></div>
+        <div class="field"><label for="messageText">Ujumbe</label><textarea id="messageText" maxlength="4000" placeholder="Andika ujumbe wako..." required></textarea></div>
+      </div>
+      <div class="message-compose-footer">
+        <small id="messageCharacterCount" aria-live="polite">0 / 4000</small>
+        <button class="btn btn-primary" id="sendMessageButton" type="submit"><i class="fas fa-paper-plane"></i> Tuma ujumbe</button>
+      </div>
+      <div class="alert" id="messageAlert" role="status" aria-live="polite"></div>
+    </form>
+  </section>
+
   <section class="section tab-panel" id="settings" data-panel="settings">
     <div class="section-head">
       <div class="section-title">
@@ -736,6 +764,7 @@
 <nav class="mobile-nav">
   <a href="#dashboard" class="active" data-tab="dashboard"><i class="fas fa-th-large"></i>Home</a>
   <a href="#bots" data-tab="bots"><i class="fas fa-robot"></i>Bots</a>
+  <a href="#messages" data-tab="messages"><i class="fas fa-paper-plane"></i>Send</a>
   <a href="#wallet" data-tab="wallet"><i class="fas fa-wallet"></i>Wallet</a>
   <a href="#settings" data-tab="settings"><i class="fas fa-cog"></i>Settings</a>
 </nav>
@@ -1175,6 +1204,8 @@ function renderBots(botsArray) {
   if (!grid) return;
 
   latestBots = Array.isArray(botsArray) ? botsArray : [];
+  botsById = {};
+  latestBots.forEach(function(bot) { botsById[bot.id] = bot; });
   var query = (document.getElementById('botSearch')?.value || '').trim().toLowerCase();
   var visibleBots = latestBots.filter(function(bot) {
     if (!query) return true;
@@ -1185,6 +1216,8 @@ function renderBots(botsArray) {
 
   if (latestBots.length === 0) {
     grid.innerHTML = '<div class="empty-state"><i class="fas fa-robot"></i>Hakuna bot zilizounganishwa.<br>Nenda kwenye Connect kuanza.</div>';
+    var messageBotPicker = document.getElementById('messageBotSelect');
+    if (messageBotPicker) messageBotPicker.innerHTML = '<option value="">Hakuna bot iliyounganishwa</option>';
     var ab = document.getElementById('activeBots');
     if (ab) ab.textContent = '0';
     var heroAb = document.getElementById('heroActiveBots');
@@ -1201,12 +1234,6 @@ function renderBots(botsArray) {
 
   grid.innerHTML = '';
   var pairedCount = latestBots.filter(function(bot) { return bot.paired; }).length;
-  botsById = {};
-
-  latestBots.forEach(function(bot) {
-    botsById[bot.id] = bot;
-  });
-
   visibleBots.forEach(function(bot) {
     var card = document.createElement('div');
     card.className = 'bot-card';
@@ -1230,6 +1257,7 @@ function renderBots(botsArray) {
       '</div>' +
       '<div class="bot-actions">' +
         '<button class="btn btn-ghost btn-sm bot-configure" type="button" data-bot-id="' + bot.id + '"><i class="fas fa-sliders"></i> Configure</button>' +
+        '<button class="btn btn-ghost btn-sm bot-message" type="button" data-bot-id="' + bot.id + '"><i class="fas fa-paper-plane"></i> Message</button>' +
         '<button class="btn btn-ghost btn-sm bot-restart" type="button" data-bot-id="' + bot.id + '"><i class="fas fa-rotate"></i> Restart</button>' +
         '<button class="btn btn-ghost btn-sm bot-stop" type="button" data-bot-id="' + bot.id + '"' + (bot.running ? '' : ' disabled') + '><i class="fas fa-stop"></i> Stop</button>' +
       '</div>';
@@ -1254,6 +1282,16 @@ function renderBots(botsArray) {
       sel.value = sel.value || latestBots[0].id;
       loadBotSettings(botsById[sel.value] || latestBots[0]);
     }
+  }
+  var messageBot = document.getElementById('messageBotSelect');
+  if (messageBot) {
+    var selectedMessageBot = messageBot.value;
+    messageBot.innerHTML = latestBots.length
+      ? latestBots.map(function(bot) {
+          return '<option value="' + bot.id + '">' + (bot.name || bot.id) + ' · ' + (bot.running ? 'Online' : 'Offline') + '</option>';
+        }).join('')
+      : '<option value="">Hakuna bot iliyounganishwa</option>';
+    if (latestBots.some(function(bot) { return bot.id === selectedMessageBot; })) messageBot.value = selectedMessageBot;
   }
 }
 
@@ -1560,6 +1598,7 @@ if (botSearch) botSearch.addEventListener('input', function() {
 var botDashboard = document.getElementById('botDashboard');
 if (botDashboard) botDashboard.addEventListener('click', function(event) {
   var configureButton = event.target.closest('.bot-configure');
+  var messageButton = event.target.closest('.bot-message');
   var restartButton = event.target.closest('.bot-restart');
   var stopButton = event.target.closest('.bot-stop');
   if (configureButton) {
@@ -1567,6 +1606,13 @@ if (botDashboard) botDashboard.addEventListener('click', function(event) {
     if (settingsSelect) settingsSelect.value = configureButton.dataset.botId;
     if (botsById[configureButton.dataset.botId]) loadBotSettings(botsById[configureButton.dataset.botId]);
     activateTab('settings');
+    return;
+  }
+  if (messageButton) {
+    var messageBotSelect = document.getElementById('messageBotSelect');
+    if (messageBotSelect) messageBotSelect.value = messageButton.dataset.botId;
+    activateTab('messages');
+    document.getElementById('messageRecipient')?.focus();
     return;
   }
   if (restartButton && !restartButton.disabled && socket) {
@@ -1580,6 +1626,98 @@ if (botDashboard) botDashboard.addEventListener('click', function(event) {
     socket.emit('stop-bot', { sessionId: stopButton.dataset.botId });
     showToast('Bot inasimamishwa...');
   }
+});
+
+var messageText = document.getElementById('messageText');
+var messageCharacterCount = document.getElementById('messageCharacterCount');
+if (messageText && messageCharacterCount) messageText.addEventListener('input', function() {
+  messageCharacterCount.textContent = messageText.value.length + ' / 4000';
+});
+var messageTemplates = {
+  greeting: 'Habari! Natumaini unaendelea vizuri.',
+  service: 'Habari, tunakutumia taarifa muhimu. Tafadhali tujibu ukihitaji msaada.',
+  thanks: 'Asante kwa kuwasiliana nasi. Tumepokea ujumbe wako na tutakujibu hivi karibuni.'
+};
+var messageTemplate = document.getElementById('messageTemplate');
+if (messageTemplate) messageTemplate.addEventListener('change', function() {
+  if (!messageTemplates[messageTemplate.value] || !messageText) return;
+  messageText.value = messageTemplates[messageTemplate.value];
+  messageText.dispatchEvent(new Event('input', { bubbles: true }));
+});
+var verifyRecipientButton = document.getElementById('verifyRecipientButton');
+if (verifyRecipientButton) verifyRecipientButton.addEventListener('click', function() {
+  var botId = document.getElementById('messageBotSelect')?.value || '';
+  var bot = botsById[botId];
+  var recipient = normalizePhone(document.getElementById('messageRecipient')?.value);
+  var status = document.getElementById('recipientCheckStatus');
+  if (!bot || !bot.running) {
+    if (status) { status.className = 'message-recipient-status invalid'; status.textContent = 'Chagua bot iliyo online kwanza.'; }
+    return;
+  }
+  if (!isValidInternationalPhone(recipient)) {
+    if (status) { status.className = 'message-recipient-status invalid'; status.textContent = 'Weka namba halali yenye country code.'; }
+    return;
+  }
+  verifyRecipientButton.disabled = true;
+  verifyRecipientButton.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Inakagua...';
+  if (status) { status.className = 'message-recipient-status'; status.textContent = ''; }
+  fetch('/api/bots/' + encodeURIComponent(botId) + '/verify-recipient', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone: recipient })
+  }).then(readJsonResponse).then(function(result) {
+    if (!result.ok) throw new Error(result.data.error || 'Imeshindikana kukagua namba.');
+    if (status) {
+      status.className = 'message-recipient-status ' + (result.data.exists ? 'valid' : 'invalid');
+      status.textContent = result.data.exists ? 'Namba hii imesajiliwa WhatsApp.' : 'Namba hii haijaonekana WhatsApp.';
+    }
+  }).catch(function(error) {
+    if (status) { status.className = 'message-recipient-status invalid'; status.textContent = error.message; }
+  }).finally(function() {
+    verifyRecipientButton.disabled = false;
+    verifyRecipientButton.innerHTML = '<i class="fas fa-user-check"></i> Kagua namba ya WhatsApp';
+  });
+});
+var sendMessageForm = document.getElementById('sendMessageForm');
+if (sendMessageForm) sendMessageForm.addEventListener('submit', function(event) {
+  event.preventDefault();
+  var botId = document.getElementById('messageBotSelect')?.value || '';
+  var bot = botsById[botId];
+  var recipient = normalizePhone(document.getElementById('messageRecipient')?.value);
+  var text = String(messageText?.value || '').trim();
+  var alert = document.getElementById('messageAlert');
+  var button = document.getElementById('sendMessageButton');
+  if (!bot || !bot.running) {
+    if (alert) { alert.className = 'alert show error'; alert.textContent = 'Chagua bot iliyo online kwanza.'; }
+    return;
+  }
+  if (!isValidInternationalPhone(recipient)) {
+    if (alert) { alert.className = 'alert show error'; alert.textContent = 'Weka namba halali yenye country code.'; }
+    return;
+  }
+  if (!text || text.length > 4000) {
+    if (alert) { alert.className = 'alert show error'; alert.textContent = 'Ujumbe uwe na herufi 1 hadi 4000.'; }
+    return;
+  }
+  button.disabled = true;
+  button.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Inatuma...';
+  if (alert) alert.className = 'alert';
+  fetch('/api/bots/' + encodeURIComponent(botId) + '/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone: recipient, text: text })
+  }).then(readJsonResponse).then(function(result) {
+    if (!result.ok) throw new Error(result.data.error || 'Ujumbe haukutumwa.');
+    if (alert) { alert.className = 'alert show success'; alert.textContent = 'Ujumbe umetumwa kwa +' + recipient + '.'; }
+    appendActivity('Ujumbe wa dashboard umetumwa kwa +' + recipient + '.', 'success');
+    messageText.value = '';
+    if (messageCharacterCount) messageCharacterCount.textContent = '0 / 4000';
+  }).catch(function(error) {
+    if (alert) { alert.className = 'alert show error'; alert.textContent = error.message; }
+  }).finally(function() {
+    button.disabled = false;
+    button.innerHTML = '<i class="fas fa-paper-plane"></i> Tuma ujumbe';
+  });
 });
 
 refreshTimer = window.setInterval(function() {
