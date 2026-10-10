@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="sw">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#101815">
+  <title>Admin Control | Mickey Glitch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
+  <style>
+    :root{color-scheme:dark;--bg:#101815;--surface:#18221e;--surface-2:#1e2b25;--line:#304039;--text:#f2f5ef;--muted:#9caea1;--lime:#c5e86c;--mint:#79d8b2;--amber:#edbf70;--red:#ee817d;--radius:7px}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 85% 0%,rgba(121,216,178,.1),transparent 35%),linear-gradient(145deg,#101815,#131d19 55%,#101815);color:var(--text);font:14px 'DM Sans',sans-serif}button,input,textarea{font:inherit}button{cursor:pointer}.shell{max-width:1440px;margin:auto;padding:26px 34px 60px}.top{display:flex;align-items:center;gap:14px;padding-bottom:22px;border-bottom:1px solid var(--line)}.mark{width:42px;height:42px;display:grid;place-items:center;background:var(--lime);color:#172015;font:700 14px 'Space Grotesk';border-radius:6px}.brand{min-width:0}.brand strong{display:block;font:700 17px 'Space Grotesk';letter-spacing:0}.brand span,.eyebrow{color:var(--muted);font-size:11px}.top-actions{margin-left:auto;display:flex;gap:8px;align-items:center}.button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:38px;padding:8px 12px;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);color:var(--text);text-decoration:none;font-weight:600}.button:hover{border-color:#607165;background:var(--surface-2)}.button.primary{background:var(--lime);color:#172015;border-color:var(--lime)}.button.danger{color:var(--red)}.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;padding:36px 0 25px}.hero h1{font:700 30px 'Space Grotesk';margin:7px 0 0}.hero p{color:var(--muted);margin:8px 0 0}.eyebrow{text-transform:uppercase;letter-spacing:.12em;font-weight:700;color:var(--mint)}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-block:1px solid var(--line);margin-bottom:28px}.stat{padding:16px 20px;border-right:1px solid var(--line)}.stat:first-child{padding-left:0}.stat:last-child{border:0}.stat span{display:block;color:var(--muted);font-size:12px}.stat strong{display:block;margin-top:5px;font:700 24px 'Space Grotesk'}.tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:20px}.tab{position:relative;padding:12px 16px;border:0;background:transparent;color:var(--muted);font-weight:700}.tab[aria-selected="true"]{color:var(--lime)}.tab[aria-selected="true"]:after{content:'';position:absolute;bottom:-1px;left:12px;right:12px;height:2px;background:var(--lime)}.tab i{margin-right:8px}.toolbar{display:flex;align-items:center;gap:10px;margin:18px 0}.search{position:relative;flex:1;max-width:390px}.search i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted)}.search input,.field input,.field textarea{width:100%;border:1px solid var(--line);border-radius:var(--radius);background:#121b17;color:var(--text);padding:11px 12px;outline:0}.search input{padding-left:38px}.search input:focus,.field input:focus,.field textarea:focus{border-color:var(--mint);box-shadow:0 0 0 2px rgba(121,216,178,.12)}.view{display:none}.view.active{display:block}.table-wrap{width:100%;overflow:auto;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}table{width:100%;border-collapse:collapse;white-space:nowrap}th{text-align:left;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:700;padding:12px 12px;border-bottom:1px solid var(--line)}td{padding:14px 12px;border-bottom:1px solid rgba(48,64,57,.65);vertical-align:middle}tbody tr:last-child td{border-bottom:0}.primary-cell{font-weight:700}.secondary{display:block;margin-top:3px;color:var(--muted);font-size:12px}.mono{font:12px 'DM Mono',monospace;color:#c5d5c9}.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border:1px solid var(--line);border-radius:4px;color:var(--muted);font-size:11px}.pill.online{border-color:rgba(121,216,178,.35);color:var(--mint)}.pill.admin{border-color:rgba(237,191,112,.4);color:var(--amber)}.empty,.notice{padding:22px 12px;color:var(--muted)}.env-intro{display:flex;justify-content:space-between;align-items:center;gap:16px;margin:18px 0}.env-intro p{color:var(--muted);max-width:720px;line-height:1.55}.env-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}.env-item{min-width:0;background:var(--bg);padding:16px}.env-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.env-head code{font:600 12px 'DM Mono',monospace;color:var(--mint)}.env-status{font-size:10px;color:var(--muted)}.env-status.set{color:var(--mint)}.env-item p{min-height:32px;margin:7px 0 10px;color:var(--muted);font-size:12px}.env-controls{display:flex;gap:8px;align-items:center}.env-controls input[type=text],.env-controls input[type=password]{flex:1;min-width:0;border:1px solid var(--line);border-radius:4px;background:#121b17;color:var(--text);padding:9px 10px;font:12px 'DM Mono',monospace}.env-controls input:focus{outline:0;border-color:var(--mint)}.clear-env{display:flex;gap:5px;align-items:center;color:var(--muted);font-size:11px;white-space:nowrap}.clear-env input{accent-color:var(--red)}.env-foot{display:flex;justify-content:space-between;gap:12px;margin-top:8px;color:var(--muted);font-size:10px}.env-foot .restart{color:var(--amber)}.banner{display:none;padding:12px 14px;margin:14px 0;border:1px solid var(--line);border-radius:var(--radius);line-height:1.45}.banner.show{display:block}.banner.error{color:var(--red);border-color:rgba(238,129,125,.4)}.banner.success{color:var(--mint);border-color:rgba(121,216,178,.4)}.banner.warning{color:var(--amber);border-color:rgba(237,191,112,.4)}dialog{width:min(460px,calc(100% - 28px));padding:0;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--text);box-shadow:0 24px 90px #0009}dialog::backdrop{background:#050908bf;backdrop-filter:blur(3px)}.dialog-head,.dialog-body,.dialog-actions{padding:18px 20px}.dialog-head{border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}.dialog-head h2{margin:0;font:700 18px 'Space Grotesk'}.dialog-body{padding-bottom:4px}.dialog-actions{display:flex;justify-content:flex-end;gap:8px;border-top:1px solid var(--line)}.field{display:grid;gap:7px;margin-bottom:14px}.field label{font-size:12px;color:var(--muted)}.field textarea{min-height:78px;resize:vertical}.status{min-height:22px;color:var(--muted);font-size:12px}.status.error{color:var(--red)}.status.success{color:var(--mint)}
+    @media(max-width:760px){.shell{padding:16px 16px 40px}.top{gap:10px}.top-actions .button span{display:none}.hero{align-items:flex-start;flex-direction:column;padding-top:28px}.hero h1{font-size:25px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stat{padding:12px;border-bottom:1px solid var(--line)}.stat:first-child{padding-left:12px}.stat:nth-child(2){border-right:0}.stat:nth-child(3){padding-left:12px;border-bottom:0}.stat:nth-child(4){border:0}.env-grid{grid-template-columns:1fr}.env-intro{align-items:flex-start;flex-direction:column}.tabs{overflow:auto}.tab{white-space:nowrap;padding-inline:12px}.table-wrap{margin-inline:-2px}.stats .stat strong{font-size:21px}}
+    @media(prefers-reduced-motion:no-preference){.shell{animation:enter .35s ease-out both}@keyframes enter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="top">
+      <div class="mark">MG</div>
+      <div class="brand"><strong>MICKEY Control</strong><span>Administrator workspace</span></div>
+      <div class="top-actions">
+        <button class="button" id="refreshButton" type="button" title="Refresh data"><i class="fas fa-rotate"></i><span>Refresh</span></button>
+        <a class="button" href="/index.html"><i class="fas fa-arrow-left"></i><span>Dashboard</span></a>
+        <button class="button danger" id="logoutButton" type="button" title="Logout"><i class="fas fa-right-from-bracket"></i><span>Logout</span></button>
+      </div>
+    </header>
+
+    <section class="hero">
+      <div><div class="eyebrow">Administration</div><h1>Admin Control</h1><p id="adminIdentity">Account operations and platform configuration.</p></div>
+      <div class="pill admin"><i class="fas fa-shield-halved"></i> Admin access</div>
+    </section>
+
+    <section class="stats" aria-label="Summary">
+      <div class="stat"><span>Users</span><strong id="statUsers">--</strong></div>
+      <div class="stat"><span>Bots</span><strong id="statBots">--</strong></div>
+      <div class="stat"><span>Online bots</span><strong id="statOnline">--</strong></div>
+      <div class="stat"><span>Coins in wallets</span><strong id="statCoins">--</strong></div>
+    </section>
+
+    <nav class="tabs" role="tablist" aria-label="Admin sections">
+      <button class="tab" id="usersTab" type="button" role="tab" aria-selected="true" aria-controls="usersView"><i class="fas fa-users"></i>Users</button>
+      <button class="tab" id="botsTab" type="button" role="tab" aria-selected="false" aria-controls="botsView"><i class="fas fa-robot"></i>Bots</button>
+      <button class="tab" id="envTab" type="button" role="tab" aria-selected="false" aria-controls="envView"><i class="fas fa-sliders"></i>Environment</button>
+    </nav>
+
+    <section class="view active" id="usersView" role="tabpanel" aria-labelledby="usersTab">
+      <div class="toolbar"><label class="search"><i class="fas fa-search"></i><input id="userSearch" type="search" placeholder="Tafuta jina, email au simu" aria-label="Tafuta users"></label><span class="eyebrow" id="userCount"></span></div>
+      <div class="table-wrap"><table><thead><tr><th>User</th><th>Contact</th><th>Wallet</th><th>Bots</th><th>Last login</th><th>Role</th><th>Actions</th></tr></thead><tbody id="usersBody"><tr><td colspan="7" class="empty">Inapakia users...</td></tr></tbody></table></div>
+    </section>
+
+    <section class="view" id="botsView" role="tabpanel" aria-labelledby="botsTab" hidden>
+      <div class="toolbar"><label class="search"><i class="fas fa-search"></i><input id="botSearch" type="search" placeholder="Tafuta bot, owner au namba" aria-label="Tafuta bots"></label><span class="eyebrow" id="botCount"></span></div>
+      <div class="table-wrap"><table><thead><tr><th>Bot</th><th>Owner</th><th>Phone</th><th>Connection</th><th>Paired</th><th>Bot ID</th></tr></thead><tbody id="botsBody"><tr><td colspan="6" class="empty">Inapakia bots...</td></tr></tbody></table></div>
+    </section>
+
+    <section class="view" id="envView" role="tabpanel" aria-labelledby="envTab" hidden>
+      <div class="env-intro"><div><div class="eyebrow">Server configuration</div><p>Secrets zilizowekwa zinafichwa. Acha secret field tupu ili ibaki kama ilivyo; badilisha thamani kisha hifadhi. Hizi ni overrides za app kwenye server file, si mabadiliko ya moja kwa moja kwenye hosting provider. Mabadiliko yanayotegemea startup yatahitaji restart.</p></div><button class="button primary" id="saveEnvButton" type="button"><i class="fas fa-floppy-disk"></i> Hifadhi mabadiliko</button></div>
+      <div class="banner" id="envBanner" role="status"></div>
+      <div class="env-grid" id="envGrid"><div class="notice">Inapakia env...</div></div>
+    </section>
+    <div class="status" id="pageStatus" role="status" aria-live="polite"></div>
+  </main>
+
+  <dialog id="coinDialog" aria-labelledby="coinDialogTitle">
+    <form id="coinForm">
+      <div class="dialog-head"><h2 id="coinDialogTitle">Badilisha wallet</h2><button class="button" id="closeCoinDialog" type="button" aria-label="Funga"><i class="fas fa-xmark"></i></button></div>
+      <div class="dialog-body"><p class="secondary" id="coinUserName"></p><input id="coinAccountId" type="hidden"><div class="field"><label for="coinBalanceInput">Salio jipya la coins</label><input id="coinBalanceInput" type="number" min="0" step="1" required></div><div class="field"><label for="coinNote">Sababu ya mabadiliko</label><textarea id="coinNote" maxlength="240" required placeholder="Mfano: Marekebisho ya malipo yaliyothibitishwa"></textarea></div><div class="status" id="coinStatus" role="status"></div></div>
+      <div class="dialog-actions"><button class="button" id="cancelCoinDialog" type="button">Ghairi</button><button class="button primary" id="saveCoinButton" type="submit"><i class="fas fa-check"></i> Hifadhi coins</button></div>
+    </form>
+  </dialog>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    let overview = { users: [], bots: [], stats: {} };
+    let envVariables = [];
+
+    async function api(url, options = {}) {
+      const response = await fetch(url, {
+        credentials: 'same-origin',
+        ...options,
+        headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }
+      });
+      const data = await response.json().catch(() => ({}));
+      if (response.status === 401) window.location.href = '/login';
+      if (!response.ok) throw new Error(data.error || 'Ombi halikufaulu.');
+      return data;
+    }
+
+    function escapeHtml(value) {
+      return String(value == null ? '' : value).replace(/[&<>"']/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
+    }
+
+    function setStatus(text, type = '') {
+      const status = $('pageStatus');
+      status.textContent = text;
+      status.className = `status ${type}`;
+    }
+
+    function renderUsers() {
+      const query = $('userSearch').value.trim().toLowerCase();
+      const users = overview.users.filter((user) => [user.name, user.email, user.phone, user.id].some((value) => String(value || '').toLowerCase().includes(query)));
+      $('userCount').textContent = `${users.length} / ${overview.users.length}`;
+      $('usersBody').innerHTML = users.length ? users.map((user) => `<tr>
+        <td><span class="primary-cell">${escapeHtml(user.name || 'User')}</span><span class="secondary mono">${escapeHtml(user.id)}</span></td>
+        <td>${escapeHtml(user.email || '—')}<span class="secondary">${escapeHtml(user.phone || 'No phone')}</span></td>
+        <td><strong>${Number(user.coinBalance || 0).toLocaleString()}</strong><span class="secondary">${Number(user.deployableBots || 0)} deployable</span></td>
+        <td>${Number(user.botCount || 0)} / ${Number(user.botLimit || 2)}</td>
+        <td>${user.lastLoginAt ? escapeHtml(new Date(user.lastLoginAt).toLocaleString()) : '—'}</td>
+        <td><span class="pill ${user.isAdmin ? 'admin' : ''}">${user.isAdmin ? 'Admin' : 'User'}</span></td>
+        <td><button class="button edit-coins" type="button" data-id="${escapeHtml(user.id)}" title="Badilisha coins za ${escapeHtml(user.name || user.email || 'user')}" aria-label="Badilisha coins"><i class="fas fa-coins"></i> Coins</button></td>
+      </tr>`).join('') : '<tr><td colspan="7" class="empty">Hakuna user aliyepatikana.</td></tr>';
+    }
+
+    function renderBots() {
+      const query = $('botSearch').value.trim().toLowerCase();
+      const bots = overview.bots.filter((bot) => [bot.name, bot.id, bot.phoneNumber, bot.owner?.name, bot.owner?.email].some((value) => String(value || '').toLowerCase().includes(query)));
+      $('botCount').textContent = `${bots.length} / ${overview.bots.length}`;
+      $('botsBody').innerHTML = bots.length ? bots.map((bot) => `<tr>
+        <td class="primary-cell">${escapeHtml(bot.name || 'Bot')}</td>
+        <td>${escapeHtml(bot.owner?.name || 'Unassigned')}<span class="secondary">${escapeHtml(bot.owner?.email || bot.owner?.id || '')}</span></td>
+        <td>${escapeHtml(bot.phoneNumber || '—')}</td>
+        <td><span class="pill ${bot.running ? 'online' : ''}">${bot.running ? 'Online' : bot.connecting ? 'Connecting' : 'Offline'}</span></td>
+        <td>${bot.paired ? 'Yes' : 'No'}</td>
+        <td class="mono">${escapeHtml(bot.id)}</td>
+      </tr>`).join('') : '<tr><td colspan="6" class="empty">Hakuna bot aliyepatikana.</td></tr>';
+    }
+
+    function renderStats() {
+      $('statUsers').textContent = Number(overview.stats.users || 0).toLocaleString();
+      $('statBots').textContent = Number(overview.stats.bots || 0).toLocaleString();
+      $('statOnline').textContent = Number(overview.stats.onlineBots || 0).toLocaleString();
+      $('statCoins').textContent = Number(overview.stats.coins || 0).toLocaleString();
+    }
+
+    async function loadOverview() {
+      setStatus('Inapakia taarifa...');
+      overview = await api('/api/admin/overview');
+      renderStats();
+      renderUsers();
+      renderBots();
+      $('adminIdentity').textContent = `Umeingia kama ${overview.users.find((user) => user.isAdmin)?.email || 'admin'}.`;
+      setStatus('Taarifa zimesasishwa.', 'success');
+    }
+
+    function showView(tab) {
+      document.querySelectorAll('.tab').forEach((item) => item.setAttribute('aria-selected', String(item === tab)));
+      document.querySelectorAll('.view').forEach((view) => {
+        const selected = view.id === tab.getAttribute('aria-controls');
+        view.classList.toggle('active', selected);
+        view.hidden = !selected;
+      });
+      if (tab.id === 'envTab' && !envVariables.length) loadEnvironment();
+    }
+
+    function renderEnvironment() {
+      $('envGrid').innerHTML = envVariables.map((item) => {
+        const secret = Boolean(item.secret);
+        const inputType = secret ? 'password' : 'text';
+        const placeholder = secret ? (item.configured ? 'Imewekwa; acha tupu kutunza iliyopo' : 'Weka thamani mpya') : 'Thamani';
+        return `<article class="env-item" data-env-item="${escapeHtml(item.key)}">
+          <div class="env-head"><code>${escapeHtml(item.key)}</code><span class="env-status ${item.configured ? 'set' : ''}">${item.configured ? 'Imewekwa' : item.required ? 'Inahitajika' : 'Haijawekwa'}</span></div>
+          <p>${escapeHtml(item.description)}</p>
+          <div class="env-controls"><input type="${inputType}" data-env-key="${escapeHtml(item.key)}" data-secret="${secret}" value="${escapeHtml(item.value || '')}" placeholder="${escapeHtml(placeholder)}" autocomplete="off" spellcheck="false" aria-label="${escapeHtml(item.key)}"><label class="clear-env"><input type="checkbox" data-env-clear="${escapeHtml(item.key)}" ${item.required ? 'disabled' : ''}> Futa</label></div>
+          <div class="env-foot"><span>${item.required ? 'Required' : 'Optional'}</span><span class="${item.restart ? 'restart' : ''}">${item.restart ? 'Needs restart' : 'Live update'}</span></div>
+        </article>`;
+      }).join('');
+    }
+
+    async function loadEnvironment() {
+      try {
+        const data = await api('/api/admin/env');
+        envVariables = data.variables || [];
+        $('envBanner').textContent = data.storageNotice || '';
+        $('envBanner').className = `banner show ${data.storage === 'temporary' ? 'warning' : 'success'}`;
+        $('saveEnvButton').disabled = data.storage === 'temporary';
+        renderEnvironment();
+      } catch (error) {
+        $('envGrid').innerHTML = `<div class="notice">${escapeHtml(error.message)}</div>`;
+      }
+    }
+
+    function openCoinDialog(accountId) {
+      const user = overview.users.find((entry) => entry.id === accountId);
+      if (!user) return;
+      $('coinAccountId').value = user.id;
+      $('coinUserName').textContent = `${user.name || user.email || user.id} · Salio sasa: ${Number(user.coinBalance || 0).toLocaleString()} coins`;
+      $('coinBalanceInput').value = Number(user.coinBalance || 0);
+      $('coinNote').value = '';
+      $('coinStatus').textContent = '';
+      $('coinDialog').showModal();
+      $('coinBalanceInput').focus();
+    }
+
+    document.querySelectorAll('.tab').forEach((tab) => tab.addEventListener('click', () => showView(tab)));
+    $('userSearch').addEventListener('input', renderUsers);
+    $('botSearch').addEventListener('input', renderBots);
+    $('usersBody').addEventListener('click', (event) => {
+      const button = event.target.closest('.edit-coins');
+      if (button) openCoinDialog(button.dataset.id);
+    });
+    $('refreshButton').addEventListener('click', () => loadOverview().catch((error) => setStatus(error.message, 'error')));
+    $('closeCoinDialog').addEventListener('click', () => $('coinDialog').close());
+    $('cancelCoinDialog').addEventListener('click', () => $('coinDialog').close());
+
+    $('coinForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const button = $('saveCoinButton');
+      button.disabled = true;
+      $('coinStatus').textContent = 'Inahifadhi...';
+      try {
+        await api(`/api/admin/users/${encodeURIComponent($('coinAccountId').value)}/coins`, {
+          method: 'PATCH',
+          body: JSON.stringify({ balance: Number($('coinBalanceInput').value), note: $('coinNote').value.trim() })
+        });
+        $('coinDialog').close();
+        await loadOverview();
+      } catch (error) {
+        $('coinStatus').textContent = error.message;
+        $('coinStatus').className = 'status error';
+      } finally {
+        button.disabled = false;
+      }
+    });
+
+    $('envGrid').addEventListener('input', (event) => {
+      if (event.target.matches('[data-env-key]')) event.target.dataset.dirty = 'true';
+    });
+    $('envGrid').addEventListener('change', (event) => {
+      const clear = event.target.closest('[data-env-clear]');
+      if (clear) {
+        const input = $('envGrid').querySelector(`[data-env-key="${CSS.escape(clear.dataset.envClear)}"]`);
+        if (input) input.disabled = clear.checked;
+      }
+    });
+
+    $('saveEnvButton').addEventListener('click', async () => {
+      const values = {};
+      const clear = [];
+      $('envGrid').querySelectorAll('[data-env-key]').forEach((input) => {
+        const key = input.dataset.envKey;
+        const clearControl = $('envGrid').querySelector(`[data-env-clear="${CSS.escape(key)}"]`);
+        if (clearControl?.checked) clear.push(key);
+        else if (input.dataset.dirty === 'true' && (!input.dataset.secret || input.value !== '')) values[key] = input.value;
+      });
+      const banner = $('envBanner');
+      banner.className = 'banner';
+      banner.textContent = '';
+      try {
+        const result = await api('/api/admin/env', { method: 'PUT', body: JSON.stringify({ values, clear }) });
+        envVariables = [];
+        await loadEnvironment();
+        banner.textContent = result.message;
+        banner.className = `banner show ${result.restartRequired ? 'warning' : 'success'}`;
+      } catch (error) {
+        banner.textContent = error.message;
+        banner.className = 'banner show error';
+      }
+    });
+
+    $('logoutButton').addEventListener('click', async () => {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
+      window.location.href = '/login';
+    });
+
+    loadOverview().catch((error) => setStatus(error.message, 'error'));
+  </script>
+</body>
+</html>

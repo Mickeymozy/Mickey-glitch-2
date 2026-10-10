@@ -2,6 +2,47 @@ require('dotenv').config({
     path: process.env.DOTENV_CONFIG_PATH || require('path').resolve(__dirname, '.env')
 });
 
+const ADMIN_ENV_DIR = process.env.VERCEL === '1' || process.env.AWS_LAMBDA_FUNCTION_NAME
+    ? require('path').join('/tmp', 'mickey-glitch')
+    : __dirname;
+const ADMIN_ENV_FILE = require('path').join(ADMIN_ENV_DIR, '.mickey-admin-env.json');
+require('fs').mkdirSync(ADMIN_ENV_DIR, { recursive: true });
+const ADMIN_ENV_DEFINITIONS = [
+    { key: 'ADMIN_EMAIL', required: true, secret: false, restart: false, description: 'Email ya akaunti ya admin.' },
+    { key: 'ADMIN_PASSWORD', required: true, secret: true, restart: false, description: 'Password ya admin login.' },
+    { key: 'ADMIN_PHONE', required: false, secret: false, restart: true, description: 'Namba ya simu ya admin.' },
+    { key: 'ADMIN_TOKEN', required: false, secret: true, restart: true, description: 'Token ya ziada ya admin.' },
+    { key: 'TELEGRAM_BOT_TOKEN', required: false, secret: true, restart: true, description: 'Telegram bot integration.' },
+    { key: 'ENABLE_TELEGRAM', required: false, secret: false, restart: true, description: 'Weka true kuwezesha Telegram kwenye low-resource mode.' },
+    { key: 'LOW_RESOURCE_MODE', required: false, secret: false, restart: true, description: 'Punguza matumizi ya resources.' },
+    { key: 'MAX_MEDIA_MB', required: false, secret: false, restart: true, description: 'Kikomo cha media upload kwa MB.' },
+    { key: 'PALMPESA_API_TOKEN', required: false, secret: true, restart: true, description: 'PalmPesa API access token.' },
+    { key: 'PALMPESA_USER_ID', required: false, secret: false, restart: true, description: 'PalmPesa user ID.' },
+    { key: 'PALMPESA_VENDOR', required: false, secret: false, restart: true, description: 'PalmPesa vendor au till.' },
+    { key: 'PALMPESA_CALLBACK_URL', required: false, secret: false, restart: false, description: 'Webhook URL ya PalmPesa.' },
+    { key: 'OPENAI_API_KEY', required: false, secret: true, restart: true, description: 'OpenAI API key.' },
+    { key: 'AI_BASE_URL', required: false, secret: false, restart: true, description: 'Base URL ya AI API.' },
+    { key: 'CHATBOT_API_URL', required: false, secret: false, restart: true, description: 'Chatbot provider endpoint.' },
+    { key: 'CHATBOT_API_KEY', required: false, secret: true, restart: true, description: 'Chatbot provider API key.' },
+    { key: 'CHATBOT_TIMEOUT_MS', required: false, secret: false, restart: true, description: 'Chatbot request timeout kwa milliseconds.' },
+    { key: 'OWNER_TELEGRAM_ID', required: false, secret: false, restart: false, description: 'Telegram owner ID.' },
+    { key: 'OWNER_NUMBER', required: false, secret: false, restart: true, description: 'Namba ya mmiliki wa bot.' },
+    { key: 'PORT', required: false, secret: false, restart: true, description: 'Port ya server.' },
+    { key: 'HOST', required: false, secret: false, restart: true, description: 'Host interface ya server.' },
+    { key: 'PUBLIC_HOST', required: false, secret: false, restart: false, description: 'Public hostname ya server.' },
+    { key: 'COIN_STORE_FILE', required: false, secret: false, restart: false, description: 'Path ya coin wallet storage.' }
+];
+let managedAdminEnv = {};
+try {
+    const storedAdminEnv = JSON.parse(require('fs').readFileSync(ADMIN_ENV_FILE, 'utf8'));
+    const allowedAdminEnvKeys = new Set(ADMIN_ENV_DEFINITIONS.map((item) => item.key));
+    managedAdminEnv = Object.fromEntries(Object.entries(storedAdminEnv)
+        .filter(([key, value]) => allowedAdminEnvKeys.has(key) && typeof value === 'string'));
+    for (const [key, value] of Object.entries(managedAdminEnv)) process.env[key] = value;
+} catch (_) {
+    managedAdminEnv = {};
+}
+
 const nativeConsoleLog = console.log.bind(console);
 const nativeConsoleInfo = console.info.bind(console);
 const isSignalSessionDump = (args) => {
@@ -56,7 +97,8 @@ const {
     listTransactions,
     createPendingTopUp,
     applyPaymentStatus,
-    debitForDeployment
+    debitForDeployment,
+    setWalletBalance
 } = require('./lib/coinStore');
 
 function isPlainConversationMessage(content) {
@@ -824,6 +866,14 @@ function getAccountFromRequest(req) {
     return accounts[session.accountId] || null;
 }
 
+function requireAdmin(req, res, next) {
+    const account = getAccountFromRequest(req);
+    if (!account) return res.status(401).json({ error: 'Login required.' });
+    if (!account.isAdmin) return res.status(403).json({ error: 'Admin access required.' });
+    req.account = account;
+    next();
+}
+
 function clearAuthSession(req, res) {
     const sessionId = parseCookies(req.headers.cookie)[AUTH_SESSION_COOKIE];
     if (sessionId) authSessions.delete(sessionId);
@@ -1004,8 +1054,8 @@ function accountResponse(account) {
 ========================================================= */
 
 const ADMIN_PHONE = normalizeAccountPhone(process.env.ADMIN_PHONE || '');
-const ADMIN_PASSWORD = String(process.env.ADMIN_PASSWORD || '').trim();
-const ADMIN_EMAIL = String(process.env.ADMIN_EMAIL || process.env.ADMIN_EMAIL_ADDRESS || '').trim().toLowerCase();
+let ADMIN_PASSWORD = String(process.env.ADMIN_PASSWORD || '').trim();
+let ADMIN_EMAIL = String(process.env.ADMIN_EMAIL || process.env.ADMIN_EMAIL_ADDRESS || 'mickidadyhamza@gmail.com').trim().toLowerCase();
 const ADMIN_TOKEN = String(process.env.ADMIN_TOKEN || '').trim();
 
 function isAuthorizedAdminPhone(phone) {
@@ -1126,16 +1176,13 @@ app.post('/api/auth/admin-phone-login', requirePersistence, async (req, res) => 
 
 app.post('/api/auth/admin-email-login', requirePersistence, async (req, res) => {
     const email = String(req.body?.email || '').trim().toLowerCase();
-    const suppliedToken = normalizeAccessToken(req.body?.token);
+    const password = String(req.body?.password || '').trim();
 
-    if (!ADMIN_EMAIL) {
-        return res.status(503).json({ error: 'ADMIN_EMAIL haijawekwa kwenye server environment.' });
+    if (!ADMIN_PASSWORD) {
+        return res.status(503).json({ error: 'Weka ADMIN_PASSWORD kwenye server environment.' });
     }
-    if (!email || email !== ADMIN_EMAIL) {
-        return res.status(401).json({ error: 'Admin email si sahihi.' });
-    }
-    if (suppliedToken && ADMIN_TOKEN && suppliedToken !== ADMIN_TOKEN) {
-        return res.status(401).json({ error: 'Admin token si sahihi.' });
+    if (!email || email !== ADMIN_EMAIL || password !== ADMIN_PASSWORD) {
+        return res.status(401).json({ error: 'Admin email au password si sahihi.' });
     }
 
     const id = `admin_${Buffer.from(email).toString('base64url')}`;
@@ -1154,6 +1201,7 @@ app.post('/api/auth/admin-email-login', requirePersistence, async (req, res) => 
     account.lastLoginAt = new Date().toISOString();
     accounts[id] = account;
     await saveAccounts({ strict: true });
+    setAuthSessionCookie(res, account);
 
     return res.json({ token: account.token, account: accountResponse(account) });
 });
@@ -1175,6 +1223,33 @@ app.post('/api/auth/login', requirePersistence, async (req, res) => {
     }
     if (password.length < 8 || password.length > 128) {
         return res.status(400).json({ error: 'Password iwe na herufi angalau 8.' });
+    }
+
+    if (email === ADMIN_EMAIL) {
+        if (!ADMIN_PASSWORD) {
+            return res.status(503).json({ error: 'Admin login haijaandaliwa. Weka ADMIN_PASSWORD.' });
+        }
+        if (password !== ADMIN_PASSWORD) {
+            return res.status(401).json({ error: 'Email/phone au password si sahihi.' });
+        }
+
+        const id = `admin_${Buffer.from(email).toString('base64url')}`;
+        const adminAccount = accounts[id] || {
+            id,
+            email,
+            name: 'MICKEY Control',
+            isAdmin: true,
+            createdAt: new Date().toISOString()
+        };
+        adminAccount.email = email;
+        adminAccount.name = 'MICKEY Control';
+        adminAccount.isAdmin = true;
+        ensureAccountToken(adminAccount);
+        adminAccount.lastLoginAt = new Date().toISOString();
+        accounts[id] = adminAccount;
+        await saveAccounts({ strict: true });
+        setAuthSessionCookie(res, adminAccount);
+        return res.json({ account: accountResponse(adminAccount) });
     }
 
     const existingAccount = email && Object.values(accounts).find((account) =>
@@ -1224,6 +1299,7 @@ app.post('/api/auth/register', requirePersistence, async (req, res) => {
 
     if (!email) return res.status(400).json({ error: 'Weka email.' });
     if (!isValidAccountEmail(email)) return res.status(400).json({ error: 'Weka email sahihi.' });
+    if (email === ADMIN_EMAIL) return res.status(403).json({ error: 'Email hii imehifadhiwa kwa admin.' });
     if (phone && !isValidInternationalPhone(phone)) return res.status(400).json({ error: 'Namba ya simu si sahihi.' });
     if (password.length < 8 || password.length > 128) return res.status(400).json({ error: 'Password iwe na herufi angalau 8.' });
     if (Object.values(accounts).some((account) => normalizeAccountEmail(account.email) === email)) {
@@ -1294,6 +1370,139 @@ app.get('/api/auth/me', requirePersistence, async (req, res) => {
 app.post('/api/auth/logout', (req, res) => {
     clearAuthSession(req, res);
     return res.json({ success: true });
+});
+
+app.get('/api/admin/overview', requirePersistence, requireAdmin, (req, res) => {
+    const allBots = getDashboardBotState();
+    const users = Object.values(accounts).map((account) => ({
+        ...accountResponse(account),
+        createdAt: account.createdAt || null,
+        lastLoginAt: account.lastLoginAt || null
+    }));
+    const bots = allBots.map((bot) => {
+        const owner = getAccountForBot(bot.id);
+        return {
+            ...bot,
+            owner: owner ? { id: owner.id, name: owner.name, email: owner.email } : null
+        };
+    });
+
+    return res.json({
+        users,
+        bots,
+        stats: {
+            users: users.length,
+            bots: bots.length,
+            onlineBots: bots.filter((bot) => bot.running).length,
+            coins: users.reduce((total, user) => total + user.coinBalance, 0)
+        }
+    });
+});
+
+app.patch('/api/admin/users/:accountId/coins', requirePersistence, requireAdmin, async (req, res) => {
+    const accountId = String(req.params.accountId || '').trim();
+    const account = Object.prototype.hasOwnProperty.call(accounts, accountId) ? accounts[accountId] : null;
+    if (!account) return res.status(404).json({ error: 'User account haijapatikana.' });
+    const note = String(req.body?.note || '').trim();
+    if (!note || note.length > 240) {
+        return res.status(400).json({ error: 'Weka sababu ya mabadiliko (herufi 1 hadi 240).' });
+    }
+
+    try {
+        const wallet = setWalletBalance({
+            accountId,
+            balance: req.body?.balance,
+            adminId: req.account.id,
+            note
+        });
+        return res.json({ wallet, user: accountResponse(account) });
+    } catch (error) {
+        return res.status(400).json({ error: error.message });
+    }
+});
+
+app.get('/api/admin/env', requirePersistence, requireAdmin, (req, res) => {
+    const variables = ADMIN_ENV_DEFINITIONS.map((definition) => {
+        const value = definition.key === 'ADMIN_EMAIL'
+            ? ADMIN_EMAIL
+            : process.env[definition.key] || '';
+        return {
+            ...definition,
+            configured: Boolean(value),
+            value: definition.secret ? '' : value
+        };
+    });
+    return res.json({
+        variables,
+        storage: isServerless ? 'temporary' : 'local-file',
+        storageNotice: isServerless
+            ? 'Vercel/serverless hutumia storage ya muda. Hifadhi env kwenye dashboard ya provider badala ya runtime file.'
+            : 'Hizi ni app-managed overrides kwenye server file, si mabadiliko ya moja kwa moja kwenye dashboard ya hosting.'
+    });
+});
+
+app.put('/api/admin/env', requirePersistence, requireAdmin, async (req, res) => {
+    if (isServerless) {
+        return res.status(409).json({ error: 'Serverless storage ni ya muda. Hariri environment variables kwenye dashboard ya hosting kisha redeploy.' });
+    }
+
+    const values = req.body?.values && typeof req.body.values === 'object' ? req.body.values : {};
+    const clear = Array.isArray(req.body?.clear) ? req.body.clear : [];
+    const definitions = new Map(ADMIN_ENV_DEFINITIONS.map((definition) => [definition.key, definition]));
+    const changedKeys = [...new Set([...Object.keys(values), ...clear])];
+
+    if (!changedKeys.length) return res.status(400).json({ error: 'Hakuna env iliyobadilishwa.' });
+
+    for (const key of changedKeys) {
+        const definition = definitions.get(key);
+        if (!definition) return res.status(400).json({ error: `Env ${key} hairuhusiwi.` });
+        if (definition.required && clear.includes(key)) {
+            return res.status(400).json({ error: `${key} haiwezi kuachwa tupu.` });
+        }
+        if (Object.prototype.hasOwnProperty.call(values, key)) {
+            const value = values[key];
+            if (typeof value !== 'string' || value.length > 4096 || value.includes('\0')) {
+                return res.status(400).json({ error: `Thamani ya ${key} si sahihi.` });
+            }
+            if (definition.required && !value.trim()) {
+                return res.status(400).json({ error: `${key} inahitajika.` });
+            }
+            if (key === 'ADMIN_EMAIL' && !isValidAccountEmail(value.trim())) {
+                return res.status(400).json({ error: 'ADMIN_EMAIL si email sahihi.' });
+            }
+            if (key === 'ADMIN_PASSWORD' && value.trim().length < 8) {
+                return res.status(400).json({ error: 'ADMIN_PASSWORD iwe na herufi angalau 8.' });
+            }
+        }
+    }
+
+    const nextManagedAdminEnv = { ...managedAdminEnv };
+    for (const key of clear) nextManagedAdminEnv[key] = '';
+    for (const [key, value] of Object.entries(values)) nextManagedAdminEnv[key] = value;
+
+    try {
+        const fsNative = require('fs');
+        const temporaryFile = `${ADMIN_ENV_FILE}.tmp`;
+        fsNative.writeFileSync(temporaryFile, JSON.stringify(nextManagedAdminEnv, null, 2), { mode: 0o600 });
+        fsNative.chmodSync(temporaryFile, 0o600);
+        fsNative.renameSync(temporaryFile, ADMIN_ENV_FILE);
+    } catch (error) {
+        return res.status(500).json({ error: 'Imeshindikana kuhifadhi env kwenye server.' });
+    }
+
+    managedAdminEnv = nextManagedAdminEnv;
+    for (const key of changedKeys) process.env[key] = managedAdminEnv[key] || '';
+    if (changedKeys.includes('ADMIN_EMAIL')) ADMIN_EMAIL = String(process.env.ADMIN_EMAIL || '').trim().toLowerCase();
+    if (changedKeys.includes('ADMIN_PASSWORD')) ADMIN_PASSWORD = String(process.env.ADMIN_PASSWORD || '').trim();
+
+    const restartRequired = changedKeys.some((key) => definitions.get(key).restart);
+    return res.json({
+        success: true,
+        restartRequired,
+        message: restartRequired
+            ? 'Env zimehifadhiwa. Restart server ili mabadiliko yote yaanze.'
+            : 'Env zimehifadhiwa na mabadiliko yameanza.'
+    });
 });
 
 /* =========================================================
@@ -2213,12 +2422,22 @@ app.use('/api', (req, res, next) => {
     return next();
 });
 
+app.get('/admin.html', (req, res) => res.redirect('/admin'));
+
 app.use(
     express.static(__dirname, {
         maxAge: lowResourceMode ? '1d' : '1h',
         etag: true
     })
 );
+
+app.get('/admin', (req, res) => {
+    const account = getAccountFromRequest(req);
+    if (!account) return res.redirect('/login');
+    if (!account.isAdmin) return res.status(403).send('Admin access required.');
+    res.set('Cache-Control', 'no-store');
+    return res.sendFile(path.join(__dirname, 'admin.html'));
+});
 
 app.get(
     '/login',

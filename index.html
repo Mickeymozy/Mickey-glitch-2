@@ -35,7 +35,7 @@
   ::-webkit-scrollbar{width:10px;height:10px;}
   ::-webkit-scrollbar-track{background:transparent;}
   ::-webkit-scrollbar-thumb{background:linear-gradient(var(--accent),var(--accent-3));border:3px solid var(--bg);border-radius:10px;}
-  body{background:radial-gradient(circle at top left, rgba(124,92,255,.22), transparent 32%),radial-gradient(circle at bottom right, rgba(0,217,255,.16), transparent 28%),var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-height:100vh;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased;transition:background .3s ease,color .3s ease;}
+  body{background:linear-gradient(135deg,rgba(124,92,255,.08),transparent 42%),linear-gradient(315deg,rgba(0,217,255,.07),transparent 38%),var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-height:100vh;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased;transition:background .3s ease,color .3s ease;}
 
   .stat-tile,.bot-card,.setting-row,.connect-card,.logs-container{backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
 
@@ -43,11 +43,6 @@
      BACKGROUND LAYER
      ============================================================ */
   .bg-layer{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none;}
-  .bg-blob{position:absolute;border-radius:50%;filter:blur(140px);opacity:.35;animation:blobFloat 20s ease-in-out infinite;}
-  .bg-blob.b1{width:600px;height:600px;background:var(--accent);top:-200px;left:-200px;}
-  .bg-blob.b2{width:500px;height:500px;background:var(--accent-3);bottom:-150px;right:-100px;animation-delay:-7s;}
-  .bg-blob.b3{width:400px;height:400px;background:var(--accent-2);top:40%;left:50%;animation-delay:-14s;opacity:.2;}
-  @keyframes blobFloat{0%,100%{transform:translate(0,0) scale(1);}33%{transform:translate(80px,-60px) scale(1.1);}66%{transform:translate(-60px,40px) scale(.95);}}
   .bg-grid{position:absolute;inset:0;opacity:.15;background-image:linear-gradient(var(--stroke) 1px,transparent 1px),linear-gradient(90deg,var(--stroke) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse 100% 60% at 50% 0%,#000 30%,transparent 80%);}
   body.light-mode .bg-layer{opacity:.4;}
 
@@ -156,7 +151,7 @@
   .hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:50px;background:rgba(16,217,122,.08);border:1px solid rgba(16,217,122,.25);font-size:.72rem;font-weight:700;color:var(--success);letter-spacing:.05em;text-transform:uppercase;margin-bottom:20px;}
   .hero-badge .live{width:6px;height:6px;background:var(--success);border-radius:50%;box-shadow:0 0 10px var(--success);animation:pulse 1.5s infinite;}
   @keyframes pulse{50%{opacity:.3;transform:scale(.8);}}
-  .hero h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(2.4rem,5vw,4.2rem);font-weight:700;line-height:1.05;letter-spacing:-.04em;margin-bottom:18px;max-width:900px;}
+  .hero h1{font-family:'Space Grotesk',sans-serif;font-size:3.6rem;font-weight:700;line-height:1.05;letter-spacing:0;margin-bottom:18px;max-width:900px;}
   .hero h1 .grad{background:linear-gradient(135deg,var(--accent),var(--accent-2),var(--accent-3));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;display:inline-block;}
   .hero p.lead{font-size:1.02rem;color:var(--text-2);max-width:620px;margin-bottom:28px;line-height:1.7;}
   .hero-cta{display:flex;gap:12px;flex-wrap:wrap;}
@@ -206,6 +201,9 @@
      BOT CARDS
      ============================================================ */
   .bots-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;}
+  .bot-filter-bar{display:flex;align-items:center;gap:6px;margin-bottom:16px;padding:5px;width:max-content;max-width:100%;border:1px solid var(--stroke);border-radius:12px;background:var(--card);}
+  .bot-filter{border:0;border-radius:8px;padding:8px 13px;background:transparent;color:var(--text-2);font:600 .75rem 'Outfit',sans-serif;cursor:pointer;transition:.2s;}
+  .bot-filter[aria-pressed="true"],.bot-filter:hover{background:var(--card-hover);color:var(--text);}
   .bot-card{padding:22px;border-radius:var(--radius);background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));border:1px solid var(--stroke);transition:.3s;box-shadow:inset 0 1px 0 rgba(255,255,255,.04);}
   .bot-card:hover{transform:translateY(-4px);border-color:var(--stroke-hover);background:linear-gradient(180deg, rgba(124,92,255,.08), rgba(255,255,255,.03));box-shadow:0 18px 42px rgba(25,22,52,.22);}
   .bot-top{display:flex;align-items:flex-start;gap:14px;margin-bottom:18px;}
@@ -265,7 +263,7 @@
   .step-num{width:28px;height:28px;border-radius:9px;flex-shrink:0;background:rgba(124,92,255,.15);border:1px solid rgba(124,92,255,.3);color:var(--accent);font-size:.75rem;font-weight:800;display:flex;align-items:center;justify-content:center;}
   .step-txt{font-size:.85rem;color:var(--text-2);padding-top:3px;}
   .pair-result{padding:28px;border-radius:var(--radius);background:var(--card);border:1px solid var(--stroke);text-align:center;}
-  .pair-result .code-display{font-family:'Space Grotesk',sans-serif;font-size:2rem;font-weight:700;letter-spacing:.15em;padding:24px;border-radius:16px;background:rgba(0,217,255,.05);border:2px dashed rgba(0,217,255,.4);color:var(--accent-2);margin:20px 0;cursor:pointer;transition:.2s;}
+  .pair-result .code-display{width:100%;font-family:'Space Grotesk',sans-serif;font-size:2rem;font-weight:700;letter-spacing:.15em;padding:24px;border-radius:16px;background:rgba(0,217,255,.05);border:2px dashed rgba(0,217,255,.4);color:var(--accent-2);margin:20px 0;cursor:pointer;transition:.2s;}
   .pair-result .code-display:hover{background:rgba(0,217,255,.1);}
 
   /* ============================================================
@@ -450,9 +448,6 @@
 <body class="auth-checking">
 
 <div class="bg-layer">
-  <div class="bg-blob b1"></div>
-  <div class="bg-blob b2"></div>
-  <div class="bg-blob b3"></div>
   <div class="bg-grid"></div>
 </div>
 
@@ -527,9 +522,9 @@
         <div class="avatar" id="userAvatar">OP</div>
         <span class="name" id="userNameDisplay">Operator</span>
       </div>
-      <span class="admin-badge" id="adminBadge" style="display:none;">
+      <a href="/admin" class="btn btn-admin btn-sm admin-badge" id="adminBadge" style="display:none;" title="Fungua admin dashboard">
         <i class="fas fa-crown"></i> Admin
-      </span>
+      </a>
     </div>
   </header>
 
@@ -542,9 +537,9 @@
       <a href="#bots" data-tab="bots" class="btn btn-ghost"><i class="fas fa-eye"></i> View Bots</a>
     </div>
     <div class="hero-stats">
-      <div class="hero-stat"><strong id="heroUptime">99.9%</strong><span>Uptime</span></div>
-      <div class="hero-stat"><strong id="heroAvgResponse">142ms</strong><span>Avg Response</span></div>
-      <div class="hero-stat"><strong id="heroActiveBots">0</strong><span>Active Bots</span></div>
+      <div class="hero-stat"><strong id="heroUptime">0/2</strong><span>Bots Used</span></div>
+      <div class="hero-stat"><strong id="heroAvgResponse">0</strong><span>Running Now</span></div>
+      <div class="hero-stat"><strong id="heroActiveBots">0</strong><span>Paired Bots</span></div>
     </div>
     <div class="account-overview" aria-live="polite">
       <div class="quota" id="accountQuota">0/2</div>
@@ -564,25 +559,25 @@
       <div class="stat-head"><div class="stat-icon"><i class="fas fa-robot"></i></div></div>
       <div class="stat-num" id="activeBots">0</div>
       <div class="stat-lbl">Active Bots</div>
-      <div class="stat-trend"><i class="fas fa-arrow-up"></i> +12%</div>
+      <div class="stat-trend"><i class="fas fa-circle-check"></i> Account bots</div>
     </div>
     <div class="stat-tile">
       <div class="stat-head"><div class="stat-icon lime"><i class="fas fa-tower-broadcast"></i></div></div>
       <div class="stat-num" id="activeSockets">0</div>
       <div class="stat-lbl">Live Sessions</div>
-      <div class="stat-trend"><i class="fas fa-arrow-up"></i> +8%</div>
+      <div class="stat-trend"><i class="fas fa-signal"></i> Live connection</div>
     </div>
     <div class="stat-tile">
       <div class="stat-head"><div class="stat-icon cyan"><i class="fas fa-users"></i></div></div>
       <div class="stat-num" id="totalUsers">0</div>
       <div class="stat-lbl">Total Users</div>
-      <div class="stat-trend"><i class="fas fa-arrow-up"></i> +24%</div>
+      <div class="stat-trend"><i class="fas fa-chart-simple"></i> Reported total</div>
     </div>
     <div class="stat-tile">
       <div class="stat-head"><div class="stat-icon pink"><i class="fas fa-comments"></i></div></div>
       <div class="stat-num" id="totalMessages">0</div>
       <div class="stat-lbl">Messages Handled</div>
-      <div class="stat-trend"><i class="fas fa-arrow-up"></i> +18%</div>
+      <div class="stat-trend"><i class="fas fa-message"></i> Reported total</div>
     </div>
   </section>
 
@@ -601,12 +596,15 @@
   </section>
 
   <section class="section tab-panel active" data-panel="dashboard" id="activity">
-    <div class="section-head">
+      <div class="section-head">
       <div class="section-title">
         <h2>Live Activity</h2>
-        <p>Recent operational events from your bot workspace</p>
+          <p>Matukio ya sasa ya workspace yako</p>
       </div>
-      <button class="btn btn-ghost btn-sm" id="clearActivityBtn" type="button"><i class="fas fa-broom"></i> Clear</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-ghost btn-sm" id="exportActivityBtn" type="button" title="Pakua activity kama CSV"><i class="fas fa-download"></i> Export</button>
+        <button class="btn btn-ghost btn-sm" id="clearActivityBtn" type="button"><i class="fas fa-broom"></i> Clear</button>
+      </div>
     </div>
     <div class="logs-container" id="activityLog" aria-live="polite">
       <div class="empty-state"><i class="fas fa-signal"></i>Waiting for bot activity...</div>
@@ -616,7 +614,7 @@
   <section class="section tab-panel" id="wallet" data-panel="wallet">
     <div class="section-head"><div class="section-title"><h2>Coin Wallet</h2><p>Balance, deposits, matumizi na deployment costs kwa wakati halisi.</p></div><span class="sync-badge" id="walletSyncStatus">Live sync active</span></div>
     <div class="view-grid">
-      <div class="surface"><div class="wallet-label">Available balance</div><div class="wallet-balance" id="walletViewBalance">0</div><p id="walletViewMeta">Coins 5 kwa bot deployment</p><div class="utility-list"><button class="btn btn-primary" id="walletDepositButton" type="button"><i class="fas fa-plus"></i> Ongeza coins</button><button class="btn btn-ghost coin-utility" data-utility="transfer" type="button"><i class="fas fa-right-left"></i> Transfer coins</button></div></div>
+      <div class="surface"><div class="wallet-label">Available balance</div><div class="wallet-balance" id="walletViewBalance">0</div><p id="walletViewMeta">Coins 5 kwa bot deployment</p><div class="utility-list"><button class="btn btn-primary" id="walletDepositButton" type="button"><i class="fas fa-plus"></i> Ongeza coins</button><button class="btn btn-ghost coin-utility" data-utility="packs" type="button"><i class="fas fa-store"></i> Angalia coin packs</button></div></div>
       <div class="surface"><h3>Wallet health</h3><p>Ufuatiliaji wa matumizi ya coin kwa workspace hii.</p><div class="bot-metrics" style="margin-top:18px;"><div class="metric"><div class="v" id="walletDeployableBots">0</div><div class="l">Deployable</div></div><div class="metric"><div class="v" id="walletTransactionCount">0</div><div class="l">Transactions</div></div><div class="metric"><div class="v" id="walletSpendRate">0</div><div class="l">Spent</div></div></div></div>
     </div>
     <div class="history-card"><div class="history-toolbar"><div class="section-title"><h3>Full transaction history</h3><p>Inasasishwa baada ya payment au bot deployment.</p></div></div><table class="history-table"><thead><tr><th>Tarehe</th><th>Muamala</th><th>Coins</th><th>Status</th></tr></thead><tbody id="walletTransactionHistory"><tr><td colspan="4">Inapakia...</td></tr></tbody></table></div>
@@ -629,7 +627,7 @@
 
   <section class="section tab-panel" id="analytics" data-panel="analytics">
     <div class="section-head"><div class="section-title"><h2>Workspace Analytics</h2><p>Signals kutoka bot state na live activity stream.</p></div></div>
-    <div class="view-grid"><div class="surface"><h3>Bot availability</h3><p>Online rate kwa bots zako.</p><div class="chart-bars" id="availabilityChart"><span class="chart-bar" style="height:35%"></span><span class="chart-bar" style="height:55%"></span><span class="chart-bar" style="height:42%"></span><span class="chart-bar" style="height:72%"></span><span class="chart-bar" style="height:64%"></span><span class="chart-bar" style="height:84%"></span><span class="chart-bar" style="height:76%"></span></div><div class="chart-labels"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Now</span></div></div><div class="surface"><h3>Live signals</h3><p>Data ya sasa kutoka Socket.IO.</p><div class="utility-list"><div class="pulse-card"><div><span class="monitor-value" id="analyticsOnlineRate">0%</span><span class="monitor-label">Online rate</span></div></div><div class="pulse-card"><div><span class="monitor-value" id="analyticsMessages">0</span><span class="monitor-label">Messages handled</span></div></div></div></div></div>
+    <div class="view-grid"><div class="surface"><h3>Bot availability</h3><p>Hali ya sasa ya bots zilizounganishwa.</p><div class="chart-bars" id="availabilityChart"><span class="chart-bar" id="onlineAvailability" style="height:0%" title="Online"></span><span class="chart-bar" id="offlineAvailability" style="height:0%;background:linear-gradient(180deg,var(--accent-3),rgba(255,92,138,.16))" title="Offline"></span></div><div class="chart-labels"><span id="onlineAvailabilityLabel">Online · 0</span><span id="offlineAvailabilityLabel">Offline · 0</span></div></div><div class="surface"><h3>Live signals</h3><p>Data ya sasa kutoka Socket.IO.</p><div class="utility-list"><div class="pulse-card"><div><span class="monitor-value" id="analyticsOnlineRate">0%</span><span class="monitor-label">Online rate</span></div></div><div class="pulse-card"><div><span class="monitor-value" id="analyticsMessages">0</span><span class="monitor-label">Messages handled</span></div></div></div></div></div>
   </section>
 
   <section class="section tab-panel" id="bots" data-panel="bots">
@@ -642,6 +640,11 @@
         <button class="btn btn-ghost btn-sm" id="refreshBotsBtn"><i class="fas fa-sync-alt"></i> Refresh</button>
         <button class="btn btn-ghost btn-sm" id="stopAllBotsBtn"><i class="fas fa-power-off"></i> Stop all</button>
       </div>
+    </div>
+    <div class="bot-filter-bar" role="group" aria-label="Chuja bots kwa hali">
+      <button class="bot-filter" type="button" data-bot-filter="all" aria-pressed="true">Zote</button>
+      <button class="bot-filter" type="button" data-bot-filter="online" aria-pressed="false">Online</button>
+      <button class="bot-filter" type="button" data-bot-filter="offline" aria-pressed="false">Offline</button>
     </div>
     <div class="bots-grid" id="botDashboard"></div>
     <div class="history-card">
@@ -748,7 +751,7 @@
           <i class="fas fa-qrcode" style="color:var(--accent);"></i> Your Pairing Code
         </h3>
         <p style="font-size:.8rem;color:var(--text-3);">Tap the code to copy it</p>
-        <div class="code-display" id="pairingCode" onclick="copyCode()">— — — —</div>
+        <button class="code-display" id="pairingCode" type="button" aria-label="Nakili pairing code">— — — —</button>
         <div class="alert" id="status"></div>
       </div>
     </div>
@@ -796,7 +799,9 @@ var accountReady = true;
 var botsById = {};
 var latestBots = [];
 var latestTransactions = [];
+var activityEntries = [];
 var activeTransactionFilter = 'ALL';
+var activeBotFilter = 'all';
 var refreshTimer = null;
 var refreshSeconds = 30;
 
@@ -851,6 +856,11 @@ function clearError(elementId) {
   var el = document.getElementById(elementId);
   if (el) el.classList.remove('show');
 }
+function escapeHtml(value) {
+  return String(value == null ? '' : value).replace(/[&<>"']/g, function(character) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character];
+  });
+}
 function showToast(msg) {
   var t = document.getElementById('toast');
   if (!t) return;
@@ -862,6 +872,9 @@ function showToast(msg) {
 function appendActivity(message, type) {
   var log = document.getElementById('activityLog');
   if (!log || !message) return;
+  var entry = { at: new Date(), type: type || 'info', message: String(message) };
+  activityEntries.unshift(entry);
+  if (activityEntries.length > 40) activityEntries.length = 40;
   var empty = log.querySelector('.empty-state');
   if (empty) empty.remove();
   var row = document.createElement('div');
@@ -900,6 +913,8 @@ function applyUserToUI(user) {
 
   var badge = document.getElementById('botsBadge');
   if (badge) badge.textContent = (user.botCount || 0) + '/' + (user.botLimit || 2);
+  var botsUsed = document.getElementById('heroUptime');
+  if (botsUsed) botsUsed.textContent = (user.botCount || 0) + '/' + (user.botLimit || 2);
 
   var quota = document.getElementById('accountQuota');
   var quotaFill = document.getElementById('accountQuotaFill');
@@ -955,20 +970,20 @@ function renderTransactionHistory(items) {
   });
   if (!visibleItems.length) {
     body.innerHTML = '<tr><td colspan="4">Hakuna transaction bado.</td></tr>';
-    return;
+  } else {
+    body.innerHTML = visibleItems.slice(0, 20).map(function(item) {
+      var type = item.type === 'BOT_DEPLOYMENT' ? 'Auto-deduct ya Deploy' : item.type === 'ADMIN_ADJUSTMENT' ? 'Marekebisho ya admin' : 'Nunuzi ya Coin';
+      var status = item.status || 'PENDING';
+      var statusClass = status === 'SUCCESS' ? 'success' : status === 'FAILED' ? 'failed' : 'pending';
+      return '<tr><td>' + escapeHtml(new Date(item.createdAt).toLocaleString()) + '</td><td>' + escapeHtml(type) + ' (' + escapeHtml(item.coins || 0) + ')</td><td>' + escapeHtml(item.orderId || item.transactionId || '—') + '</td><td><span class="status-badge ' + statusClass + '">' + escapeHtml(status) + '</span></td></tr>';
+    }).join('');
   }
-  body.innerHTML = visibleItems.slice(0, 20).map(function(item) {
-    var type = item.type === 'BOT_DEPLOYMENT' ? 'Auto-deduct ya Deploy' : 'Nunuzi ya Coin';
-    var status = item.status || 'PENDING';
-    var statusClass = status === 'SUCCESS' ? 'success' : status === 'FAILED' ? 'failed' : 'pending';
-    return '<tr><td>' + new Date(item.createdAt).toLocaleString() + '</td><td>' + type + ' (' + (item.coins || 0) + ')</td><td>' + (item.orderId || item.transactionId || '—') + '</td><td><span class="status-badge ' + statusClass + '">' + status + '</span></td></tr>';
-  }).join('');
   var walletBody = document.getElementById('walletTransactionHistory');
   if (walletBody) {
     walletBody.innerHTML = latestTransactions.length ? latestTransactions.map(function(item) {
       var status = item.status || 'PENDING';
       var statusClass = status === 'SUCCESS' ? 'success' : status === 'FAILED' ? 'failed' : 'pending';
-      return '<tr><td>' + new Date(item.createdAt).toLocaleString() + '</td><td>' + (item.type || 'Wallet') + '</td><td>' + (item.coins || 0) + '</td><td><span class="status-badge ' + statusClass + '">' + status + '</span></td></tr>';
+      return '<tr><td>' + escapeHtml(new Date(item.createdAt).toLocaleString()) + '</td><td>' + escapeHtml(item.type || 'Wallet') + '</td><td>' + escapeHtml(item.coins || 0) + '</td><td><span class="status-badge ' + statusClass + '">' + escapeHtml(status) + '</span></td></tr>';
     }).join('') : '<tr><td colspan="4">Hakuna transaction bado.</td></tr>';
   }
   var count = document.getElementById('walletTransactionCount');
@@ -1208,6 +1223,8 @@ function renderBots(botsArray) {
   latestBots.forEach(function(bot) { botsById[bot.id] = bot; });
   var query = (document.getElementById('botSearch')?.value || '').trim().toLowerCase();
   var visibleBots = latestBots.filter(function(bot) {
+    var matchesStatus = activeBotFilter === 'all' || (activeBotFilter === 'online' ? bot.running : !bot.running);
+    if (!matchesStatus) return false;
     if (!query) return true;
     return [bot.name, bot.id, bot.phoneNumber].some(function(value) {
       return String(value || '').toLowerCase().includes(query);
@@ -1222,13 +1239,16 @@ function renderBots(botsArray) {
     if (ab) ab.textContent = '0';
     var heroAb = document.getElementById('heroActiveBots');
     if (heroAb) heroAb.textContent = '0';
+    var runningBots = document.getElementById('heroAvgResponse');
+    if (runningBots) runningBots.textContent = '0';
     var b = document.getElementById('botsBadge');
-    if (b) b.textContent = '0/2';
+    if (b) b.textContent = '0/' + (currentUser?.botLimit || 2);
     return;
   }
 
   if (visibleBots.length === 0) {
-    grid.innerHTML = '<div class="empty-state"><i class="fas fa-magnifying-glass"></i>Hakuna bot inayolingana na "' + query.replace(/[&<>]/g, '') + '".</div>';
+    var emptyMessage = query ? 'Hakuna bot inayolingana na "' + escapeHtml(query) + '".' : 'Hakuna bot yenye hali hii.';
+    grid.innerHTML = '<div class="empty-state"><i class="fas fa-magnifying-glass"></i>' + emptyMessage + '</div>';
     return;
   }
 
@@ -1243,23 +1263,23 @@ function renderBots(botsArray) {
 
     card.innerHTML =
       '<div class="bot-top">' +
-        '<div class="bot-avatar">' + avatar + '</div>' +
+        '<div class="bot-avatar">' + escapeHtml(avatar) + '</div>' +
         '<div class="bot-meta">' +
-          '<h3>' + (bot.name || 'Bot') + '</h3>' +
-          '<div class="id">' + (bot.id || '') + '</div>' +
+          '<h3>' + escapeHtml(bot.name || 'Bot') + '</h3>' +
+          '<div class="id">' + escapeHtml(bot.id || '') + '</div>' +
         '</div>' +
         '<div class="status-pill ' + status + '"><span class="ind"></span>' + (bot.paired ? statusLabel : 'offline') + '</div>' +
       '</div>' +
       '<div class="bot-metrics">' +
-        '<div class="metric"><div class="v">' + (bot.phoneNumber || '—') + '</div><div class="l">Number</div></div>' +
+        '<div class="metric"><div class="v">' + escapeHtml(bot.phoneNumber || '—') + '</div><div class="l">Number</div></div>' +
         '<div class="metric"><div class="v">' + (bot.paired ? 'Yes' : 'No') + '</div><div class="l">Paired</div></div>' +
         '<div class="metric"><div class="v">' + (bot.running ? 'Live' : 'Idle') + '</div><div class="l">Runtime</div></div>' +
       '</div>' +
       '<div class="bot-actions">' +
-        '<button class="btn btn-ghost btn-sm bot-configure" type="button" data-bot-id="' + bot.id + '"><i class="fas fa-sliders"></i> Configure</button>' +
-        '<button class="btn btn-ghost btn-sm bot-message" type="button" data-bot-id="' + bot.id + '"><i class="fas fa-paper-plane"></i> Message</button>' +
-        '<button class="btn btn-ghost btn-sm bot-restart" type="button" data-bot-id="' + bot.id + '"><i class="fas fa-rotate"></i> Restart</button>' +
-        '<button class="btn btn-ghost btn-sm bot-stop" type="button" data-bot-id="' + bot.id + '"' + (bot.running ? '' : ' disabled') + '><i class="fas fa-stop"></i> Stop</button>' +
+        '<button class="btn btn-ghost btn-sm bot-configure" type="button" data-bot-id="' + escapeHtml(bot.id) + '"><i class="fas fa-sliders"></i> Configure</button>' +
+        '<button class="btn btn-ghost btn-sm bot-message" type="button" data-bot-id="' + escapeHtml(bot.id) + '"><i class="fas fa-paper-plane"></i> Message</button>' +
+        '<button class="btn btn-ghost btn-sm bot-restart" type="button" data-bot-id="' + escapeHtml(bot.id) + '"><i class="fas fa-rotate"></i> Restart</button>' +
+        '<button class="btn btn-ghost btn-sm bot-stop" type="button" data-bot-id="' + escapeHtml(bot.id) + '"' + (bot.running ? '' : ' disabled') + '><i class="fas fa-stop"></i> Stop</button>' +
       '</div>';
     grid.appendChild(card);
   });
@@ -1268,6 +1288,8 @@ function renderBots(botsArray) {
   if (ab) ab.textContent = pairedCount;
   var heroAb = document.getElementById('heroActiveBots');
   if (heroAb) heroAb.textContent = pairedCount;
+  var runningBots = document.getElementById('heroAvgResponse');
+  if (runningBots) runningBots.textContent = latestBots.filter(function(bot) { return bot.running; }).length;
 
   var b = document.getElementById('botsBadge');
   if (b) b.textContent = latestBots.length + '/' + (currentUser?.botLimit || 2);
@@ -1276,7 +1298,7 @@ function renderBots(botsArray) {
   var sel = document.getElementById('settingsBot');
   if (sel) {
     sel.innerHTML = latestBots.map(function(bot){
-      return '<option value="' + bot.id + '">' + (bot.name || bot.id) + ' · ' + (bot.running ? 'Running' : 'Offline') + '</option>';
+      return '<option value="' + escapeHtml(bot.id) + '">' + escapeHtml(bot.name || bot.id) + ' · ' + (bot.running ? 'Running' : 'Offline') + '</option>';
     }).join('');
     if (latestBots.length) {
       sel.value = sel.value || latestBots[0].id;
@@ -1287,8 +1309,8 @@ function renderBots(botsArray) {
   if (messageBot) {
     var selectedMessageBot = messageBot.value;
     messageBot.innerHTML = latestBots.length
-      ? latestBots.map(function(bot) {
-          return '<option value="' + bot.id + '">' + (bot.name || bot.id) + ' · ' + (bot.running ? 'Online' : 'Offline') + '</option>';
+        ? latestBots.map(function(bot) {
+          return '<option value="' + escapeHtml(bot.id) + '">' + escapeHtml(bot.name || bot.id) + ' · ' + (bot.running ? 'Online' : 'Offline') + '</option>';
         }).join('')
       : '<option value="">Hakuna bot iliyounganishwa</option>';
     if (latestBots.some(function(bot) { return bot.id === selectedMessageBot; })) messageBot.value = selectedMessageBot;
@@ -1305,6 +1327,14 @@ function updateMonitor(botsArray) {
   var rateText = total ? Math.round((online / total) * 100) + '%' : '0%';
   if (rate) rate.textContent = rateText;
   if (analyticsRate) analyticsRate.textContent = rateText;
+  var onlineBar = document.getElementById('onlineAvailability');
+  var offlineBar = document.getElementById('offlineAvailability');
+  var onlineLabel = document.getElementById('onlineAvailabilityLabel');
+  var offlineLabel = document.getElementById('offlineAvailabilityLabel');
+  if (onlineBar) onlineBar.style.height = (total ? Math.round((online / total) * 100) : 0) + '%';
+  if (offlineBar) offlineBar.style.height = (total ? Math.round(((total - online) / total) * 100) : 0) + '%';
+  if (onlineLabel) onlineLabel.textContent = 'Online · ' + online;
+  if (offlineLabel) offlineLabel.textContent = 'Offline · ' + (total - online);
   if (sync) sync.textContent = 'Last sync · ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   if (state) state.textContent = online ? online + ' bot' + (online === 1 ? '' : 's') + ' online' : 'No active bots';
   var whatsapp = document.getElementById('whatsappStatus');
@@ -1367,6 +1397,8 @@ function copyCode() {
     navigator.clipboard.writeText(code).then(function(){ showToast('Code copied!'); });
   }
 }
+var pairingCodeButton = document.getElementById('pairingCode');
+if (pairingCodeButton) pairingCodeButton.addEventListener('click', copyCode);
 
 var copyPairingKeyButton = document.getElementById('copyPairingKey');
 if (copyPairingKeyButton) copyPairingKeyButton.addEventListener('click', function() {
@@ -1566,15 +1598,37 @@ document.querySelectorAll('[data-transaction-filter]').forEach(function(button) 
 });
 document.querySelectorAll('.coin-utility').forEach(function(button) {
   button.addEventListener('click', function() {
-    var labels = { transfer: 'Coin transfer', stake: 'Coin staking', convert: 'Coin conversion' };
-    showToast(labels[button.dataset.utility] + ' itahitaji wallet API mpya. Imewekwa kwenye roadmap.');
+    if (button.dataset.utility === 'packs') activateTab('store');
   });
 });
 var clearActivityBtn = document.getElementById('clearActivityBtn');
 if (clearActivityBtn) clearActivityBtn.addEventListener('click', function() {
   var log = document.getElementById('activityLog');
   if (!log) return;
+  activityEntries = [];
   log.innerHTML = '<div class="empty-state"><i class="fas fa-signal"></i>Waiting for bot activity...</div>';
+});
+var exportActivityBtn = document.getElementById('exportActivityBtn');
+if (exportActivityBtn) exportActivityBtn.addEventListener('click', function() {
+  if (!activityEntries.length) { showToast('Hakuna activity ya ku-export bado.'); return; }
+  var quoteCsv = function(value) {
+    var text = String(value);
+    if (/^[\t\r ]*[=+\-@]/.test(text)) text = "'" + text;
+    return '"' + text.replace(/"/g, '""') + '"';
+  };
+  var rows = [['Time', 'Type', 'Message']].concat(activityEntries.slice().reverse().map(function(entry) {
+    return [entry.at.toISOString(), entry.type, entry.message];
+  }));
+  var csv = rows.map(function(row) { return row.map(quoteCsv).join(','); }).join('\r\n');
+  var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var link = document.createElement('a');
+  link.href = url;
+  link.download = 'mickey-activity-' + new Date().toISOString().slice(0, 10) + '.csv';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(function() { URL.revokeObjectURL(url); }, 1000);
 });
 var refreshBotsBtn = document.getElementById('refreshBotsBtn');
 if (refreshBotsBtn) refreshBotsBtn.addEventListener('click', function(){
@@ -1594,6 +1648,15 @@ var botSearch = document.getElementById('botSearch');
 if (botSearch) botSearch.addEventListener('input', function() {
   botSearch.classList.toggle('is-filtering', Boolean(botSearch.value.trim()));
   renderBots(latestBots);
+});
+document.querySelectorAll('[data-bot-filter]').forEach(function(button) {
+  button.addEventListener('click', function() {
+    activeBotFilter = button.dataset.botFilter || 'all';
+    document.querySelectorAll('[data-bot-filter]').forEach(function(filterButton) {
+      filterButton.setAttribute('aria-pressed', filterButton === button ? 'true' : 'false');
+    });
+    renderBots(latestBots);
+  });
 });
 var botDashboard = document.getElementById('botDashboard');
 if (botDashboard) botDashboard.addEventListener('click', function(event) {

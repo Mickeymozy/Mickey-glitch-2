@@ -38,3 +38,31 @@ test('PalmPesa completion credits coins once and deployment debits five coins', 
     fs.rmSync(file, { force: true });
   }
 });
+
+test('admin balance changes are validated and recorded in wallet history', () => {
+  const file = path.join(os.tmpdir(), `mickey-coins-admin-${Date.now()}-${Math.random()}.json`);
+  const previousFile = process.env.COIN_STORE_FILE;
+  process.env.COIN_STORE_FILE = file;
+
+  try {
+    assert.equal(coinStore.setWalletBalance({
+      accountId: 'account_admin_test',
+      balance: 25,
+      adminId: 'admin_test',
+      note: 'Support adjustment'
+    }).balance, 25);
+
+    const adjustment = coinStore.listTransactions('account_admin_test')[0];
+    assert.equal(adjustment.type, 'ADMIN_ADJUSTMENT');
+    assert.equal(adjustment.coins, 25);
+    assert.equal(adjustment.adminId, 'admin_test');
+    assert.equal(adjustment.note, 'Support adjustment');
+    assert.throws(() => coinStore.setWalletBalance({
+      accountId: 'account_admin_test', balance: -1, adminId: 'admin_test'
+    }), /non-negative/);
+  } finally {
+    if (previousFile === undefined) delete process.env.COIN_STORE_FILE;
+    else process.env.COIN_STORE_FILE = previousFile;
+    fs.rmSync(file, { force: true });
+  }
+});
