@@ -1,6 +1,11 @@
 node_modules
 .git
 .env
+.env.*
+!.env.example
 auth_info
+data/accounts.json
+data/coin_wallets.json
+data/.mickey-admin-env.json
 logs
 *.log

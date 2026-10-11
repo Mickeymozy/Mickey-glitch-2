@@ -1,0 +1,17 @@
+services:
+  mickey-glitch:
+    build: .
+    container_name: mickey-glitch
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      MICKEY_DATA_DIR: /app/data
+      COIN_STORE_FILE: /app/data/coin_wallets.json
+      HOST: 0.0.0.0
+      PORT: 3000
+    ports:
+      - "${PORT:-3000}:3000"
+    volumes:
+      - ./data:/app/data
+      - ./auth_info:/app/auth_info

@@ -2,9 +2,11 @@ require('dotenv').config({
     path: process.env.DOTENV_CONFIG_PATH || require('path').resolve(__dirname, '.env')
 });
 
-const ADMIN_ENV_DIR = process.env.VERCEL === '1' || process.env.AWS_LAMBDA_FUNCTION_NAME
-    ? require('path').join('/tmp', 'mickey-glitch')
-    : __dirname;
+const ADMIN_ENV_DIR = process.env.MICKEY_DATA_DIR
+    ? require('path').resolve(__dirname, process.env.MICKEY_DATA_DIR)
+    : process.env.VERCEL === '1' || process.env.AWS_LAMBDA_FUNCTION_NAME
+        ? require('path').join('/tmp', 'mickey-glitch', 'data')
+        : require('path').join(__dirname, 'data');
 const ADMIN_ENV_FILE = require('path').join(ADMIN_ENV_DIR, '.mickey-admin-env.json');
 require('fs').mkdirSync(ADMIN_ENV_DIR, { recursive: true });
 const ADMIN_ENV_DEFINITIONS = [
@@ -715,9 +717,12 @@ const RUNTIME_DIR = process.env.VERCEL === '1'
     ? path.join('/tmp', 'mickey-glitch')
     : __dirname;
 const AUTH_DIR = path.join(RUNTIME_DIR, 'auth_info');
-const DATA_DIR = path.join(RUNTIME_DIR, 'data');
+const DATA_DIR = ADMIN_ENV_DIR;
 const DATA_FILE = path.join(DATA_DIR, 'bot_data.json');
 const ACCOUNTS_FILE = path.join(DATA_DIR, 'accounts.json');
+if (!process.env.COIN_STORE_FILE) {
+    process.env.COIN_STORE_FILE = path.join(DATA_DIR, 'coin_wallets.json');
+}
 let persistenceReady = false;
 
 fs.ensureDirSync(AUTH_DIR);
@@ -816,7 +821,9 @@ function saveAccounts({ strict = false } = {}) {
 }
 
 async function initializePersistence() {
+    const configuredAdminId = `admin_${Buffer.from(ADMIN_EMAIL).toString('base64url')}`;
     for (const account of Object.values(accounts)) {
+        if (account.isAdmin && account.id !== configuredAdminId) account.isAdmin = false;
         ensureAccountToken(account);
         ensurePairingAccessKey(account);
     }
@@ -1053,125 +1060,17 @@ function accountResponse(account) {
     ADMIN CREDENTIALS (environment)
 ========================================================= */
 
-const ADMIN_PHONE = normalizeAccountPhone(process.env.ADMIN_PHONE || '');
 let ADMIN_PASSWORD = String(process.env.ADMIN_PASSWORD || '').trim();
 let ADMIN_EMAIL = String(process.env.ADMIN_EMAIL || process.env.ADMIN_EMAIL_ADDRESS || 'mickidadyhamza@gmail.com').trim().toLowerCase();
 const ADMIN_TOKEN = String(process.env.ADMIN_TOKEN || '').trim();
-
-function isAuthorizedAdminPhone(phone) {
-    if (!phone) return false;
-    if (ADMIN_PHONE && phone === ADMIN_PHONE) return true;
-    return Object.values(accounts).some((account) =>
-        account?.isAdmin && normalizeAccountPhone(account.phone) === phone
-    );
-}
 
 
 /* =========================================================
    AUTH ROUTES
 ========================================================= */
 
-// Admin login
-app.post('/api/auth/admin-login', requirePersistence, async (req, res) => {
-    const phone = normalizeAccountPhone(req.body?.phone);
-    const password = String(req.body?.password || '').trim();
-
-    if (!isValidInternationalPhone(phone) || phone !== ADMIN_PHONE || password !== ADMIN_PASSWORD) {
-        return res.status(401).json({ error: 'Admin credentials si sahihi.' });
-    }
-
-    const id = `account_${phone}`;
-    const account = accounts[id] || {
-        id,
-        phone,
-        name: 'Admin Mickey',
-        isAdmin: true,
-        createdAt: new Date().toISOString()
-    };
-
-    account.isAdmin = true;
-    if (!account.name) account.name = 'Admin Mickey';
-    ensureAccountToken(account);
-    for (const botId of account.botIds || []) {
-        if (sessions[botId]?.sock) {
-            sessions[botId].sock.accountToken = account.token;
-        }
-    }
-    account.lastLoginAt = new Date().toISOString();
-    accounts[id] = account;
-    await saveAccounts({ strict: true });
-
-    return res.json({
-        token: account.token,
-        account: accountResponse(account)
-    });
-});
-
-app.post('/api/auth/mickey-login', requirePersistence, async (req, res) => {
-    const password = String(req.body?.password || '').trim();
-
-    if (!password || password !== ADMIN_PASSWORD) {
-        return res.status(401).json({ error: 'Admin password si sahihi.' });
-    }
-
-    const id = 'account_mickey_admin';
-    const allBotIds = [...new Set([
-        ...Object.values(accounts).flatMap((account) =>
-            Array.isArray(account?.botIds) ? account.botIds : []
-        ),
-        ...Object.keys(sessions)
-    ])];
-    const account = accounts[id] || {
-        id,
-        name: 'MICKEY Control',
-        phone: ADMIN_PHONE,
-        isAdmin: true,
-        createdAt: new Date().toISOString()
-    };
-
-    account.name = 'MICKEY Control';
-    account.phone = ADMIN_PHONE;
-    account.isAdmin = true;
-    account.botIds = allBotIds;
-    ensureAccountToken(account);
-    account.lastLoginAt = new Date().toISOString();
-    accounts[id] = account;
-
-    for (const botId of account.botIds) {
-        if (sessions[botId]) sessions[botId].accountId = account.id;
-        if (sessions[botId]?.sock) sessions[botId].sock.accountToken = account.token;
-    }
-
-    await saveAccounts({ strict: true });
-    return res.json({ token: account.token, account: accountResponse(account) });
-});
-
 app.post('/api/auth/admin-phone-login', requirePersistence, async (req, res) => {
-    const phone = normalizeAccountPhone(
-        req.body?.phone ?? req.body?.phoneNumber ?? req.body?.number ?? req.body?.adminPhone
-    );
-    if (!phone || !isAuthorizedAdminPhone(phone)) {
-        return res.status(401).json({ error: 'Admin phone si sahihi.' });
-    }
-
-    const id = `account_${phone}`;
-    const account = accounts[id] || {
-        id,
-        phone,
-        name: 'Admin Mickey',
-        isAdmin: true,
-        createdAt: new Date().toISOString()
-    };
-    account.phone = phone;
-    account.name = account.name || 'Admin Mickey';
-    account.isAdmin = true;
-    account.token = ADMIN_TOKEN || account.token;
-    ensureAccountToken(account);
-    account.lastLoginAt = new Date().toISOString();
-    accounts[id] = account;
-    await saveAccounts({ strict: true });
-
-    return res.json({ token: account.token, account: accountResponse(account) });
+    return res.status(410).json({ error: 'Admin phone login imezimwa. Tumia email na password ya admin.' });
 });
 
 app.post('/api/auth/admin-email-login', requirePersistence, async (req, res) => {
@@ -1278,10 +1177,6 @@ app.post('/api/auth/login', requirePersistence, async (req, res) => {
     if (email) account.email = email;
     if (phone) account.phone = phone;
     if (name) account.name = name;
-    if (phone && phone === ADMIN_PHONE) {
-        account.isAdmin = true;
-        account.name = account.name || 'Admin Mickey';
-    }
     ensureAccountToken(account);
     account.lastLoginAt = new Date().toISOString();
     accounts[id] = account;
@@ -4709,52 +4604,8 @@ async function loadExistingSessions() {
 io.on(
     'connection',
     (socket) => {
-        const controlAccount = accounts.account_mickey_admin || {
-            id: 'account_mickey_admin',
-            name: 'MICKEY Control',
-            phone: ADMIN_PHONE,
-            isAdmin: true,
-            botIds: [],
-            createdAt: new Date().toISOString()
-        };
-        controlAccount.isAdmin = true;
-        controlAccount.botIds = [...new Set([
-            ...Object.values(accounts).flatMap((account) =>
-                Array.isArray(account?.botIds) ? account.botIds : []
-            ),
-            ...Object.keys(sessions)
-        ])];
-        accounts.account_mickey_admin = controlAccount;
         socket.account = null;
         socket.authenticated = false;
-
-        socket.on(
-            'admin-auth',
-            (password) => {
-
-                const adminPass = String(process.env.ADMIN_PASSWORD || ADMIN_PASSWORD).trim();
-
-                if (
-                    password ===
-                    adminPass
-                ) {
-
-                    socket.authenticated =
-                        true;
-                    socket.account = controlAccount;
-
-                    socket.emit(
-                        'admin-auth-success'
-                    );
-
-                } else {
-
-                    socket.emit(
-                        'admin-auth-fail'
-                    );
-                }
-            }
-        );
 
         socket.on('account-auth', async () => {
             const sessionId = parseCookies(socket.handshake.headers.cookie)[AUTH_SESSION_COOKIE];
