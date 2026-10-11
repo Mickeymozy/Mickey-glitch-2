@@ -69,6 +69,19 @@
     @media(max-width:760px){.shell{padding:12px 16px 42px}.top{margin:0 -16px;padding:11px 16px}.mark{width:38px;height:38px}.hero{padding:30px 0 20px}.hero h1{font-size:27px}.stats{gap:9px;margin-bottom:25px}.stat,.stat:first-child,.stat:last-child{min-height:88px;padding:14px}.stat span{font-size:9px}.stat strong{font-size:23px}.tabs{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));overflow:visible}.tab{padding:9px 5px;font-size:11px}.tab i{margin-right:5px}.toolbar{align-items:stretch}.search{max-width:none}.table-wrap{margin-inline:0;border-radius:5px}.env-intro{padding:14px}.env-grid{grid-template-columns:1fr}.env-item{padding:14px}}
     @media(max-width:380px){.brand strong{font-size:14px}.top-actions{gap:5px}.top-actions .button{width:36px;min-width:36px;padding:8px}.stats{gap:7px}.stat,.stat:first-child,.stat:last-child{padding:12px 10px}.stat strong{font-size:21px}.tab{font-size:10px}}
     @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+    .ops-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    .ops-broadcast{display:grid;gap:12px;align-content:start}
+    .ops-broadcast .field{margin:0}
+    .ops-broadcast select,.ops-broadcast textarea{width:100%;padding:10px 11px;border:1px solid rgba(162,173,164,.18);border-radius:5px;background:#121916;color:var(--text)}
+    .ops-broadcast textarea{resize:vertical}
+    .broadcast-confirm{display:flex;gap:8px;align-items:flex-start;color:var(--muted);font-size:12px}
+    .feature-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:16px}
+    .feature-control{display:flex;align-items:center;gap:9px;padding:10px;border:1px solid rgba(162,173,164,.15);border-radius:5px;background:rgba(16,22,19,.65);font-size:12px}
+    .feature-control input{accent-color:var(--lime);width:17px;height:17px}
+    .ops-audit-head{align-items:center;margin-top:26px}
+    .ops-health{margin-bottom:20px}
+    @media(max-width:760px){.tabs{grid-template-columns:repeat(4,minmax(0,1fr))}.ops-grid{grid-template-columns:1fr}.feature-controls{grid-template-columns:1fr 1fr}}
+    @media(max-width:420px){.feature-controls{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
@@ -99,6 +112,7 @@
       <button class="tab" id="usersTab" type="button" role="tab" aria-selected="true" aria-controls="usersView"><i class="fas fa-users"></i>Users</button>
       <button class="tab" id="botsTab" type="button" role="tab" aria-selected="false" aria-controls="botsView"><i class="fas fa-robot"></i>Bots</button>
       <button class="tab" id="envTab" type="button" role="tab" aria-selected="false" aria-controls="envView"><i class="fas fa-sliders"></i>Environment</button>
+      <button class="tab" id="operationsTab" type="button" role="tab" aria-selected="false" aria-controls="operationsView"><i class="fas fa-tower-broadcast"></i>Operations</button>
     </nav>
 
     <section class="view active" id="usersView" role="tabpanel" aria-labelledby="usersTab">
@@ -116,6 +130,33 @@
       <div class="banner" id="envBanner" role="status"></div>
       <div class="env-grid" id="envGrid"><div class="notice">Inapakia env...</div></div>
     </section>
+    <section class="view" id="operationsView" role="tabpanel" aria-labelledby="operationsTab" hidden>
+      <div class="stats ops-health" aria-label="Hali ya server">
+        <div class="stat"><span>Server</span><strong id="healthStatus">Inapakia</strong></div>
+        <div class="stat"><span>Uptime</span><strong id="healthUptime">--</strong></div>
+        <div class="stat"><span>Persistence</span><strong id="healthPersistence">--</strong></div>
+        <div class="stat"><span>Bots online</span><strong id="healthOnlineBots">--</strong></div>
+      </div>
+      <div class="ops-grid">
+        <form id="broadcastForm" class="env-intro ops-broadcast">
+          <div><div class="eyebrow">Group announcement</div><p>Ujumbe utatumwa kwa vikundi ambavyo bot iliyochaguliwa imejiunga navyo. Hadi vikundi 100 kwa ombi.</p></div>
+          <div class="field"><label for="broadcastBot">Bot scope</label><select id="broadcastBot"><option value="">Bots zote zilizo online</option></select></div>
+          <div class="field"><label for="broadcastText">Tangazo</label><textarea id="broadcastText" maxlength="3000" required placeholder="Andika tangazo..." rows="4"></textarea></div>
+          <div class="field"><label for="broadcastScheduledAt">Panga muda (hiari)</label><input id="broadcastScheduledAt" type="datetime-local"><small class="secondary">Acha wazi kutuma sasa; ratiba inaruhusiwa hadi siku 7 mbele.</small></div>
+          <label class="broadcast-confirm"><input id="broadcastConfirm" type="checkbox" required> Nimehakiki maandishi na nakubali kutuma kwa vikundi vilivyochaguliwa.</label>
+          <button class="button primary" id="sendBroadcastButton" type="submit"><i class="fas fa-paper-plane"></i> Tuma tangazo</button>
+          <div class="banner" id="broadcastStatus" role="status" aria-live="polite"></div>
+        </form>
+        <section class="env-intro">
+          <div><div class="eyebrow">Command controls</div><p>Washa au zima integrations za bot. Mabadiliko yanahifadhiwa kwenye data ya bot.</p></div>
+          <div class="feature-controls" id="featureControls"><div class="notice">Inapakia features...</div></div>
+        </section>
+      </div>
+      <div class="section-head ops-audit-head"><div><div class="eyebrow">Scheduled broadcasts</div><p>Matangazo yanayosubiri kutumwa.</p></div></div>
+      <div class="table-wrap"><table><thead><tr><th>Muda</th><th>Bot</th><th>Ujumbe</th><th>Action</th></tr></thead><tbody id="scheduledBroadcastBody"><tr><td colspan="4" class="empty">Hakuna matangazo yaliyopangwa.</td></tr></tbody></table></div>
+      <div class="section-head ops-audit-head"><div><div class="eyebrow">Audit trail</div><p>Matendo ya admin ya hivi karibuni.</p></div><button class="button" id="refreshOperationsButton" type="button"><i class="fas fa-rotate"></i> Refresh</button></div>
+      <div class="table-wrap"><table><thead><tr><th>Muda</th><th>Admin</th><th>Tukio</th><th>Maelezo</th></tr></thead><tbody id="auditBody"><tr><td colspan="4" class="empty">Inapakia audit log...</td></tr></tbody></table></div>
+    </section>
     <div class="status" id="pageStatus" role="status" aria-live="polite"></div>
   </main>
 
@@ -127,10 +168,26 @@
     </form>
   </dialog>
 
+  <dialog id="userControlDialog" aria-labelledby="userControlTitle">
+    <form id="userControlForm">
+      <div class="dialog-head"><h2 id="userControlTitle">User access</h2><button class="button" id="closeUserControlDialog" type="button" aria-label="Funga"><i class="fas fa-xmark"></i></button></div>
+      <div class="dialog-body">
+        <p class="secondary" id="userControlName"></p>
+        <input id="controlAccountId" type="hidden">
+        <div class="field"><label for="controlBotLimit">Bots zinazoruhusiwa</label><input id="controlBotLimit" type="number" min="0" max="100" step="1" required></div>
+        <div class="field"><label for="controlMessageLimit">Ujumbe kwa dakika</label><input id="controlMessageLimit" type="number" min="1" max="60" step="1" required></div>
+        <div class="field"><label for="controlSuspendMinutes">Simamisha kwa dakika (0 kuondoa)</label><input id="controlSuspendMinutes" type="number" min="0" max="43200" step="1" required></div>
+        <div class="status" id="userControlStatus" role="status"></div>
+      </div>
+      <div class="dialog-actions"><button class="button" id="cancelUserControlDialog" type="button">Ghairi</button><button class="button primary" id="saveUserControlButton" type="submit">Hifadhi access</button></div>
+    </form>
+  </dialog>
+
   <script>
     const $ = (id) => document.getElementById(id);
     let overview = { users: [], bots: [], stats: {} };
     let envVariables = [];
+    let operations = { features: {}, auditLog: [], health: {} };
 
     async function api(url, options = {}) {
       const response = await fetch(url, {
@@ -162,10 +219,10 @@
         <td><span class="primary-cell">${escapeHtml(user.name || 'User')}</span><span class="secondary mono">${escapeHtml(user.id)}</span></td>
         <td>${escapeHtml(user.email || '—')}<span class="secondary">${escapeHtml(user.phone || 'No phone')}</span></td>
         <td><strong>${Number(user.coinBalance || 0).toLocaleString()}</strong><span class="secondary">${Number(user.deployableBots || 0)} deployable</span></td>
-        <td>${Number(user.botCount || 0)} / ${Number(user.botLimit || 2)}</td>
+        <td>${Number(user.botCount || 0)} / ${Number(user.botLimit ?? 2)}<span class="secondary">${Number(user.messageLimitPerMinute || 10)} messages/min</span></td>
         <td>${user.lastLoginAt ? escapeHtml(new Date(user.lastLoginAt).toLocaleString()) : '—'}</td>
-        <td><span class="pill ${user.isAdmin ? 'admin' : ''}">${user.isAdmin ? 'Admin' : 'User'}</span></td>
-        <td><button class="button edit-coins" type="button" data-id="${escapeHtml(user.id)}" title="Badilisha coins za ${escapeHtml(user.name || user.email || 'user')}" aria-label="Badilisha coins"><i class="fas fa-coins"></i> Coins</button></td>
+        <td><span class="pill ${user.isAdmin ? 'admin' : ''}">${user.isAdmin ? 'Admin' : 'User'}</span>${user.suspendedUntil && Date.parse(user.suspendedUntil) > Date.now() ? '<span class="secondary">Suspended</span>' : ''}</td>
+        <td><button class="button edit-coins" type="button" data-id="${escapeHtml(user.id)}" title="Badilisha coins za ${escapeHtml(user.name || user.email || 'user')}" aria-label="Badilisha coins"><i class="fas fa-coins"></i> Coins</button><button class="button user-access" type="button" data-id="${escapeHtml(user.id)}" title="Badilisha limits au suspension"><i class="fas fa-user-gear"></i> Access</button><button class="button toggle-role" type="button" data-id="${escapeHtml(user.id)}" data-admin="${user.isAdmin}" ${user.id.startsWith('admin_') ? 'disabled' : ''} title="Badilisha role ya ${escapeHtml(user.name || user.email || 'user')}"><i class="fas fa-user-shield"></i> ${user.isAdmin ? 'Remove admin' : 'Make admin'}</button></td>
       </tr>`).join('') : '<tr><td colspan="7" class="empty">Hakuna user aliyepatikana.</td></tr>';
     }
 
@@ -190,6 +247,27 @@
       $('statCoins').textContent = Number(overview.stats.coins || 0).toLocaleString();
     }
 
+    function renderOperations() {
+      const health = operations.health || {};
+      $('healthStatus').textContent = health.status || 'Unknown';
+      $('healthUptime').textContent = `${Math.floor(Number(health.uptime || 0) / 3600)}h ${Math.floor((Number(health.uptime || 0) % 3600) / 60)}m`;
+      $('healthPersistence').textContent = health.persistence || 'Unknown';
+      $('healthOnlineBots').textContent = Number(health.onlineBots || 0).toLocaleString();
+
+      const labels = { chatbot: 'Chatbot', autoStatus: 'Auto status', autorecording: 'Auto recording', autotyping: 'Auto typing', anticall: 'Anti-call', pmblocker: 'PM blocker' };
+      $('featureControls').innerHTML = Object.entries(labels).map(([feature, label]) => `<label class="feature-control"><input type="checkbox" data-feature="${feature}" ${operations.features[feature] ? 'checked' : ''}><span>${label}</span></label>`).join('');
+      $('auditBody').innerHTML = operations.auditLog.length ? operations.auditLog.map((entry) => `<tr><td>${escapeHtml(new Date(entry.at).toLocaleString())}</td><td>${escapeHtml(entry.actor)}</td><td>${escapeHtml(entry.action)}</td><td>${escapeHtml(JSON.stringify(entry.details || {}))}</td></tr>`).join('') : '<tr><td colspan="4" class="empty">Bado hakuna matendo yaliyorekodiwa.</td></tr>';
+      $('scheduledBroadcastBody').innerHTML = operations.scheduledBroadcasts?.length ? operations.scheduledBroadcasts.map((entry) => `<tr><td>${escapeHtml(new Date(entry.scheduledAt).toLocaleString())}</td><td>${escapeHtml(entry.botId || 'Bots zote')}</td><td>${escapeHtml(entry.text.slice(0, 120))}</td><td><button class="button danger cancel-broadcast" type="button" data-id="${escapeHtml(entry.id)}" title="Futa tangazo lililopangwa"><i class="fas fa-xmark"></i> Cancel</button></td></tr>`).join('') : '<tr><td colspan="4" class="empty">Hakuna matangazo yaliyopangwa.</td></tr>';
+      const selectedBot = $('broadcastBot').value;
+      $('broadcastBot').innerHTML = '<option value="">Bots zote zilizo online</option>' + overview.bots.filter((bot) => bot.running).map((bot) => `<option value="${escapeHtml(bot.id)}">${escapeHtml(bot.name || bot.id)} · ${escapeHtml(bot.phoneNumber || '')}</option>`).join('');
+      if (overview.bots.some((bot) => bot.id === selectedBot && bot.running)) $('broadcastBot').value = selectedBot;
+    }
+
+    async function loadOperations() {
+      operations = await api('/api/admin/operations');
+      renderOperations();
+    }
+
     async function loadOverview() {
       setStatus('Inapakia taarifa...');
       overview = await api('/api/admin/overview');
@@ -208,6 +286,7 @@
         view.hidden = !selected;
       });
       if (tab.id === 'envTab' && !envVariables.length) loadEnvironment();
+      if (tab.id === 'operationsTab') loadOperations().catch((error) => setStatus(error.message, 'error'));
     }
 
     function renderEnvironment() {
@@ -249,14 +328,126 @@
       $('coinBalanceInput').focus();
     }
 
+    function openUserControlDialog(accountId) {
+      const user = overview.users.find((entry) => entry.id === accountId);
+      if (!user) return;
+      $('controlAccountId').value = user.id;
+      $('userControlName').textContent = `${user.name || user.email || user.id} · ${user.suspendedUntil && Date.parse(user.suspendedUntil) > Date.now() ? 'Suspended' : 'Active'}`;
+      $('controlBotLimit').value = Number(user.botLimit || 0);
+      $('controlMessageLimit').value = Number(user.messageLimitPerMinute || 10);
+      $('controlSuspendMinutes').value = user.suspendedUntil && Date.parse(user.suspendedUntil) > Date.now() ? Math.ceil((Date.parse(user.suspendedUntil) - Date.now()) / 60000) : 0;
+      $('userControlStatus').textContent = '';
+      $('userControlDialog').showModal();
+      $('controlBotLimit').focus();
+    }
+
     document.querySelectorAll('.tab').forEach((tab) => tab.addEventListener('click', () => showView(tab)));
     $('userSearch').addEventListener('input', renderUsers);
     $('botSearch').addEventListener('input', renderBots);
     $('usersBody').addEventListener('click', (event) => {
-      const button = event.target.closest('.edit-coins');
-      if (button) openCoinDialog(button.dataset.id);
+      const coinButton = event.target.closest('.edit-coins');
+      if (coinButton) return openCoinDialog(coinButton.dataset.id);
+      const accessButton = event.target.closest('.user-access');
+      if (accessButton) return openUserControlDialog(accessButton.dataset.id);
+      const roleButton = event.target.closest('.toggle-role');
+      if (!roleButton) return;
+      const role = roleButton.dataset.admin === 'true' ? 'user' : 'admin';
+      if (!window.confirm(`Badilisha role ya user huyu kuwa ${role}?`)) return;
+      roleButton.disabled = true;
+      api(`/api/admin/users/${encodeURIComponent(roleButton.dataset.id)}/role`, {
+        method: 'PATCH',
+        body: JSON.stringify({ role })
+      }).then(() => Promise.all([loadOverview(), loadOperations()]))
+        .catch((error) => setStatus(error.message, 'error'))
+        .finally(() => { roleButton.disabled = false; });
     });
     $('refreshButton').addEventListener('click', () => loadOverview().catch((error) => setStatus(error.message, 'error')));
+    $('refreshOperationsButton').addEventListener('click', () => loadOperations().catch((error) => setStatus(error.message, 'error')));
+    $('featureControls').addEventListener('change', async (event) => {
+      const control = event.target.closest('[data-feature]');
+      if (!control) return;
+      control.disabled = true;
+      try {
+        await api(`/api/admin/features/${encodeURIComponent(control.dataset.feature)}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ enabled: control.checked })
+        });
+        await loadOperations();
+        setStatus('Feature imehifadhiwa.', 'success');
+      } catch (error) {
+        control.checked = !control.checked;
+        setStatus(error.message, 'error');
+      } finally {
+        control.disabled = false;
+      }
+    });
+    $('closeUserControlDialog').addEventListener('click', () => $('userControlDialog').close());
+    $('cancelUserControlDialog').addEventListener('click', () => $('userControlDialog').close());
+    $('userControlForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const button = $('saveUserControlButton');
+      const accountId = $('controlAccountId').value;
+      button.disabled = true;
+      $('userControlStatus').textContent = 'Inahifadhi...';
+      try {
+        await api(`/api/admin/users/${encodeURIComponent(accountId)}/limits`, {
+          method: 'PATCH',
+          body: JSON.stringify({ botLimit: Number($('controlBotLimit').value), messageLimitPerMinute: Number($('controlMessageLimit').value) })
+        });
+        await api(`/api/admin/users/${encodeURIComponent(accountId)}/suspension`, {
+          method: 'PATCH',
+          body: JSON.stringify({ minutes: Number($('controlSuspendMinutes').value) })
+        });
+        $('userControlDialog').close();
+        await loadOverview();
+        await loadOperations();
+      } catch (error) {
+        $('userControlStatus').textContent = error.message;
+        $('userControlStatus').className = 'status error';
+      } finally {
+        button.disabled = false;
+      }
+    });
+    $('broadcastForm').addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const button = $('sendBroadcastButton');
+      const status = $('broadcastStatus');
+      button.disabled = true;
+      status.className = 'banner show';
+      status.textContent = 'Inatuma tangazo...';
+      try {
+        const result = await api('/api/admin/broadcast', {
+          method: 'POST',
+          body: JSON.stringify({ text: $('broadcastText').value.trim(), botId: $('broadcastBot').value, scheduledAt: $('broadcastScheduledAt').value ? new Date($('broadcastScheduledAt').value).toISOString() : '', confirm: $('broadcastConfirm').checked })
+        });
+        status.className = 'banner show success';
+        status.textContent = result.scheduled
+          ? `Tangazo limepangwa ${new Date(result.scheduled.scheduledAt).toLocaleString()}.`
+          : `Limetumwa kwa vikundi ${result.sent}; limeshindwa ${result.failed}.`;
+        $('broadcastText').value = '';
+        $('broadcastScheduledAt').value = '';
+        $('broadcastConfirm').checked = false;
+        await loadOperations();
+      } catch (error) {
+        status.className = 'banner show error';
+        status.textContent = error.message;
+      } finally {
+        button.disabled = false;
+      }
+    });
+    $('scheduledBroadcastBody').addEventListener('click', async (event) => {
+      const button = event.target.closest('.cancel-broadcast');
+      if (!button) return;
+      button.disabled = true;
+      try {
+        await api(`/api/admin/broadcast/${encodeURIComponent(button.dataset.id)}`, { method: 'DELETE' });
+        await loadOperations();
+        setStatus('Tangazo limefutwa.', 'success');
+      } catch (error) {
+        setStatus(error.message, 'error');
+        button.disabled = false;
+      }
+    });
     $('closeCoinDialog').addEventListener('click', () => $('coinDialog').close());
     $('cancelCoinDialog').addEventListener('click', () => $('coinDialog').close());
 

@@ -23,6 +23,7 @@ const ADMIN_ENV_DEFINITIONS = [
     { key: 'PALMPESA_VENDOR', required: false, secret: false, restart: true, description: 'PalmPesa vendor au till.' },
     { key: 'PALMPESA_CALLBACK_URL', required: false, secret: false, restart: false, description: 'Webhook URL ya PalmPesa.' },
     { key: 'OPENAI_API_KEY', required: false, secret: true, restart: true, description: 'OpenAI API key.' },
+    { key: 'NEWS_API_KEY', required: false, secret: true, restart: false, description: 'NewsAPI key ya latest headlines tool.' },
     { key: 'AI_BASE_URL', required: false, secret: false, restart: true, description: 'Base URL ya AI API.' },
     { key: 'CHATBOT_API_URL', required: false, secret: false, restart: true, description: 'Chatbot provider endpoint.' },
     { key: 'CHATBOT_API_KEY', required: false, secret: true, restart: true, description: 'Chatbot provider API key.' },
@@ -736,7 +737,9 @@ let botData = {
     antiDelete: {},
     userNames: {},
     antiCall: {},
-    broadcastHistory: {}
+    broadcastHistory: {},
+    scheduledBroadcasts: [],
+    adminAuditLog: []
 };
 
 if (fs.existsSync(DATA_FILE)) {
@@ -823,7 +826,7 @@ function saveAccounts({ strict = false } = {}) {
 async function initializePersistence() {
     const configuredAdminId = `admin_${Buffer.from(ADMIN_EMAIL).toString('base64url')}`;
     for (const account of Object.values(accounts)) {
-        if (account.isAdmin && account.id !== configuredAdminId) account.isAdmin = false;
+        if (account.id !== configuredAdminId) account.isAdmin = account.platformRole === 'admin';
         ensureAccountToken(account);
         ensurePairingAccessKey(account);
     }
@@ -870,7 +873,10 @@ function getAccountFromRequest(req) {
         return null;
     }
     session.expiresAt = Date.now() + AUTH_SESSION_TTL_MS;
-    return accounts[session.accountId] || null;
+    const account = accounts[session.accountId] || null;
+    if (!account) return null;
+    if (!account.isAdmin && Date.parse(account.suspendedUntil || '') > Date.now()) return null;
+    return account;
 }
 
 function requireAdmin(req, res, next) {
@@ -1030,6 +1036,12 @@ function getAccountBotIds(accountId) {
     return Array.isArray(account?.botIds) ? account.botIds : [];
 }
 
+function getAccountBotLimit(account) {
+    if (account?.isAdmin) return 999;
+    const configuredLimit = Number(account?.botLimit);
+    return Number.isSafeInteger(configuredLimit) ? Math.max(0, Math.min(100, configuredLimit)) : 2;
+}
+
 function accountResponse(account) {
     ensureAccountToken(account);
     ensurePairingAccessKey(account);
@@ -1042,7 +1054,9 @@ function accountResponse(account) {
         nin: maskNin(account.nin),
         hasNin: Boolean(account.nin),
         isAdmin: Boolean(account.isAdmin),
-        botLimit: account.isAdmin ? 999 : 2,
+        botLimit: getAccountBotLimit(account),
+        messageLimitPerMinute: Math.max(1, Math.min(60, Number(account.messageLimitPerMinute) || 10)),
+        suspendedUntil: account.suspendedUntil || null,
         botCount: getAccountBotIds(account.id).length,
         botIds: getAccountBotIds(account.id),
         pairingAccessKey: account.pairingAccessKey,
@@ -1165,6 +1179,9 @@ app.post('/api/auth/login', requirePersistence, async (req, res) => {
         createdAt: new Date().toISOString()
     };
 
+    if (!account.isAdmin && Date.parse(account.suspendedUntil || '') > Date.now()) {
+        return res.status(403).json({ error: `Account imesimamishwa hadi ${new Date(account.suspendedUntil).toLocaleString()}.` });
+    }
     if (account.passwordHash && !verifyAccountPassword(password, account.passwordHash)) {
         return res.status(401).json({ error: 'Email/phone au password si sahihi.' });
     }
@@ -1228,7 +1245,7 @@ app.post('/api/account/link-bot', requirePersistence, async (req, res) => {
     if (!botAccount) return res.status(404).json({ error: 'Bot token si sahihi au bot haipo kwenye database.' });
 
     const botIds = [...new Set(botAccount.botIds || [])];
-    const botLimit = account.isAdmin ? 999 : 2;
+    const botLimit = getAccountBotLimit(account);
     const existingBotIds = getAccountBotIds(account.id);
     const newBotIds = botIds.filter((botId) => !existingBotIds.includes(botId));
     if (existingBotIds.length + newBotIds.length > botLimit) {
@@ -1294,6 +1311,247 @@ app.get('/api/admin/overview', requirePersistence, requireAdmin, (req, res) => {
     });
 });
 
+const ADMIN_COMMAND_FEATURES = Object.freeze(['chatbot', 'autoStatus', 'autorecording', 'autotyping', 'anticall', 'pmblocker']);
+
+function recordAdminAudit(req, action, details = {}) {
+    botData.adminAuditLog = Array.isArray(botData.adminAuditLog) ? botData.adminAuditLog : [];
+    botData.adminAuditLog.unshift({
+        at: new Date().toISOString(),
+        actor: String(req.account?.email || req.account?.id || 'admin').slice(0, 120),
+        action: String(action).slice(0, 80),
+        details
+    });
+    botData.adminAuditLog = botData.adminAuditLog.slice(0, 200);
+    saveBotData();
+}
+
+const scheduledBroadcastTimers = new Map();
+
+async function deliverAdminBroadcast(text, botId) {
+    const connectedSessions = Object.entries(sessions).filter(([, session]) => session?.isConnected && session.sock?.sendMessage);
+    const targets = botId ? connectedSessions.filter(([id]) => id === botId) : connectedSessions;
+    if (botId && !targets.length) {
+        const error = new Error('Bot iliyochaguliwa haiko online.');
+        error.statusCode = 409;
+        throw error;
+    }
+
+    const groups = new Map();
+    try {
+        for (const [, session] of targets) {
+            const participating = typeof session.sock.groupFetchAllParticipating === 'function'
+                ? await session.sock.groupFetchAllParticipating()
+                : {};
+            for (const group of Object.values(participating || {})) {
+                if (group?.id?.endsWith('@g.us') && !groups.has(group.id)) groups.set(group.id, { session, id: group.id });
+            }
+        }
+    } catch (_) {
+        const error = new Error('Imeshindikana kupata vikundi vya bot.');
+        error.statusCode = 502;
+        throw error;
+    }
+
+    if (!groups.size) {
+        const error = new Error('Hakuna vikundi vilivyounganishwa na bot zilizo online.');
+        error.statusCode = 409;
+        throw error;
+    }
+    if (groups.size > 100) {
+        const error = new Error('Broadcast imezidi vikundi 100. Chagua bot moja au punguza scope.');
+        error.statusCode = 413;
+        throw error;
+    }
+
+    let sent = 0;
+    let failed = 0;
+    for (const { session, id } of groups.values()) {
+        try {
+            await session.sock.sendMessage(id, { text });
+            sent += 1;
+        } catch (_) {
+            failed += 1;
+        }
+        await delay(120);
+    }
+    return { sent, failed };
+}
+
+function scheduleAdminBroadcast(item) {
+    if (scheduledBroadcastTimers.has(item.id)) return;
+    const waitMs = Math.max(0, Date.parse(item.scheduledAt) - Date.now());
+    const timer = setTimeout(async () => {
+        scheduledBroadcastTimers.delete(item.id);
+        try {
+            item.result = await deliverAdminBroadcast(item.text, item.botId);
+            item.status = item.result.failed ? 'partial' : 'sent';
+        } catch (error) {
+            item.status = 'failed';
+            item.error = error.message;
+        }
+        item.completedAt = new Date().toISOString();
+        botData.scheduledBroadcasts = (botData.scheduledBroadcasts || []).filter((entry) => entry.id !== item.id);
+        botData.broadcastHistory = botData.broadcastHistory || {};
+        botData.broadcastHistory.admin = botData.broadcastHistory.admin || [];
+        botData.broadcastHistory.admin.unshift({ id: item.id, at: item.completedAt, status: item.status, result: item.result, error: item.error || null });
+        botData.broadcastHistory.admin = botData.broadcastHistory.admin.slice(0, 30);
+        recordAdminAudit({ account: { email: item.actor } }, 'scheduled_broadcast_completed', { id: item.id, status: item.status, result: item.result || null });
+        saveBotData();
+    }, waitMs);
+    if (typeof timer.unref === 'function') timer.unref();
+    scheduledBroadcastTimers.set(item.id, timer);
+}
+
+function restoreScheduledBroadcasts() {
+    const now = Date.now();
+    const pending = Array.isArray(botData.scheduledBroadcasts) ? botData.scheduledBroadcasts : [];
+    const keep = [];
+    for (const item of pending) {
+        if (Date.parse(item.scheduledAt) > now) {
+            keep.push(item);
+            scheduleAdminBroadcast(item);
+        } else {
+            recordAdminAudit({ account: { email: item.actor } }, 'scheduled_broadcast_missed', { id: item.id });
+        }
+    }
+    botData.scheduledBroadcasts = keep;
+    saveBotData();
+}
+
+app.get('/api/admin/operations', requirePersistence, requireAdmin, (req, res) => {
+    const features = Object.fromEntries(ADMIN_COMMAND_FEATURES.map((feature) => [feature, getCommandFeatureState(feature)]));
+    const onlineBots = Object.values(sessions).filter((session) => session?.isConnected).length;
+    return res.json({
+        features,
+        auditLog: Array.isArray(botData.adminAuditLog) ? botData.adminAuditLog.slice(0, 60) : [],
+        scheduledBroadcasts: Array.isArray(botData.scheduledBroadcasts) ? botData.scheduledBroadcasts : [],
+        health: { status: 'ok', persistence: persistenceReady ? 'ready' : 'starting', uptime: Math.round(process.uptime()), onlineBots }
+    });
+});
+
+app.patch('/api/admin/users/:accountId/role', requirePersistence, requireAdmin, async (req, res) => {
+    const accountId = String(req.params.accountId || '').trim();
+    const target = Object.prototype.hasOwnProperty.call(accounts, accountId) ? accounts[accountId] : null;
+    if (!target) return res.status(404).json({ error: 'User account haijapatikana.' });
+    const configuredAdminId = `admin_${Buffer.from(ADMIN_EMAIL).toString('base64url')}`;
+    if (target.id === configuredAdminId) return res.status(409).json({ error: 'Admin mkuu hawezi kubadilishiwa role hapa.' });
+    const role = String(req.body?.role || '').toLowerCase();
+    if (!['admin', 'user'].includes(role)) return res.status(400).json({ error: 'Role lazima iwe admin au user.' });
+
+    target.platformRole = role;
+    target.isAdmin = role === 'admin';
+    await saveAccounts();
+    recordAdminAudit(req, 'user_role_changed', { accountId, role });
+    return res.json({ success: true, user: accountResponse(target) });
+});
+
+app.patch('/api/admin/users/:accountId/limits', requirePersistence, requireAdmin, async (req, res) => {
+    const accountId = String(req.params.accountId || '').trim();
+    const target = Object.prototype.hasOwnProperty.call(accounts, accountId) ? accounts[accountId] : null;
+    if (!target) return res.status(404).json({ error: 'User account haijapatikana.' });
+    const botLimit = Number(req.body?.botLimit);
+    const messageLimitPerMinute = Number(req.body?.messageLimitPerMinute);
+    if (!Number.isSafeInteger(botLimit) || botLimit < 0 || botLimit > 100) {
+        return res.status(400).json({ error: 'Bot limit lazima iwe namba kamili kati ya 0 na 100.' });
+    }
+    if (!Number.isSafeInteger(messageLimitPerMinute) || messageLimitPerMinute < 1 || messageLimitPerMinute > 60) {
+        return res.status(400).json({ error: 'Message limit lazima iwe kati ya 1 na 60 kwa dakika.' });
+    }
+    target.botLimit = botLimit;
+    target.messageLimitPerMinute = messageLimitPerMinute;
+    await saveAccounts();
+    recordAdminAudit(req, 'user_limits_changed', { accountId, botLimit, messageLimitPerMinute });
+    return res.json({ success: true, user: accountResponse(target) });
+});
+
+app.patch('/api/admin/users/:accountId/suspension', requirePersistence, requireAdmin, async (req, res) => {
+    const accountId = String(req.params.accountId || '').trim();
+    const target = Object.prototype.hasOwnProperty.call(accounts, accountId) ? accounts[accountId] : null;
+    if (!target) return res.status(404).json({ error: 'User account haijapatikana.' });
+    const configuredAdminId = `admin_${Buffer.from(ADMIN_EMAIL).toString('base64url')}`;
+    const minutes = Number(req.body?.minutes);
+    if (!Number.isSafeInteger(minutes) || minutes < 0 || minutes > 43200) {
+        return res.status(400).json({ error: 'Muda uwe dakika 0 hadi 43200; 0 inaondoa suspension.' });
+    }
+    if (minutes > 0 && (target.isAdmin || target.id === configuredAdminId)) return res.status(409).json({ error: 'Admin account haiwezi kusimamishwa.' });
+    target.suspendedUntil = minutes ? new Date(Date.now() + minutes * 60_000).toISOString() : null;
+    await saveAccounts();
+    if (minutes > 0) {
+        for (const botId of target.botIds || []) {
+            const socketId = userSockets[botId];
+            if (socketId) io.sockets.sockets.get(socketId)?.disconnect(true);
+        }
+    }
+    recordAdminAudit(req, minutes ? 'user_suspended' : 'user_unsuspended', { accountId, minutes });
+    return res.json({ success: true, user: accountResponse(target) });
+});
+
+app.patch('/api/admin/features/:feature', requirePersistence, requireAdmin, (req, res) => {
+    const feature = String(req.params.feature || '');
+    if (!ADMIN_COMMAND_FEATURES.includes(feature)) return res.status(404).json({ error: 'Feature haipo kwenye admin controls.' });
+    if (typeof req.body?.enabled !== 'boolean') return res.status(400).json({ error: 'enabled lazima iwe true au false.' });
+
+    try {
+        setCommandFeatureState(feature, req.body.enabled);
+        recordAdminAudit(req, 'feature_toggled', { feature, enabled: req.body.enabled });
+        return res.json({ success: true, feature, enabled: getCommandFeatureState(feature) });
+    } catch (error) {
+        return res.status(500).json({ error: 'Imeshindikana kubadilisha feature hii.' });
+    }
+});
+
+app.post('/api/admin/broadcast', requirePersistence, requireAdmin, async (req, res) => {
+    const text = String(req.body?.text || '').trim();
+    if (!text || text.length > 3000) return res.status(400).json({ error: 'Tangazo liwe na herufi 1 hadi 3000.' });
+    if (req.body?.confirm !== true) return res.status(400).json({ error: 'Thibitisha kutuma tangazo.' });
+    const botId = String(req.body?.botId || '').trim();
+    const scheduleValue = String(req.body?.scheduledAt || '').trim();
+    const scheduledAt = scheduleValue ? Date.parse(scheduleValue) : 0;
+    if (scheduleValue && !Number.isFinite(scheduledAt)) return res.status(400).json({ error: 'Muda wa tangazo si sahihi.' });
+    if (scheduledAt) {
+        if (isServerless) return res.status(409).json({ error: 'Scheduled broadcasts zinahitaji server process inayokaa online.' });
+        if (scheduledAt < Date.now() + 30_000 || scheduledAt > Date.now() + 7 * 24 * 60 * 60 * 1000) {
+            return res.status(400).json({ error: 'Panga tangazo kuanzia sekunde 30 hadi siku 7 zijazo.' });
+        }
+        botData.scheduledBroadcasts = Array.isArray(botData.scheduledBroadcasts) ? botData.scheduledBroadcasts : [];
+        if (botData.scheduledBroadcasts.length >= 50) return res.status(409).json({ error: 'Kuna matangazo 50 yaliyopangwa tayari.' });
+        const item = {
+            id: `broadcast_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`,
+            text,
+            botId: botId || null,
+            actor: String(req.account.email || req.account.id),
+            scheduledAt: new Date(scheduledAt).toISOString(),
+            status: 'scheduled'
+        };
+        botData.scheduledBroadcasts.push(item);
+        saveBotData();
+        scheduleAdminBroadcast(item);
+        recordAdminAudit(req, 'group_broadcast_scheduled', { id: item.id, botId: item.botId, scheduledAt: item.scheduledAt });
+        return res.status(202).json({ success: true, scheduled: item });
+    }
+
+    try {
+        const result = await deliverAdminBroadcast(text, botId || null);
+        recordAdminAudit(req, 'group_broadcast_sent', { ...result, botId: botId || null });
+        return res.json({ success: true, ...result });
+    } catch (error) {
+        return res.status(error.statusCode || 502).json({ error: error.message });
+    }
+});
+
+app.delete('/api/admin/broadcast/:broadcastId', requirePersistence, requireAdmin, (req, res) => {
+    const broadcastId = String(req.params.broadcastId || '');
+    const pending = (botData.scheduledBroadcasts || []).find((item) => item.id === broadcastId);
+    if (!pending) return res.status(404).json({ error: 'Tangazo lililopangwa halijapatikana.' });
+    const timer = scheduledBroadcastTimers.get(broadcastId);
+    if (timer) clearTimeout(timer);
+    scheduledBroadcastTimers.delete(broadcastId);
+    botData.scheduledBroadcasts = botData.scheduledBroadcasts.filter((item) => item.id !== broadcastId);
+    saveBotData();
+    recordAdminAudit(req, 'scheduled_broadcast_cancelled', { id: broadcastId });
+    return res.json({ success: true });
+});
+
 app.patch('/api/admin/users/:accountId/coins', requirePersistence, requireAdmin, async (req, res) => {
     const accountId = String(req.params.accountId || '').trim();
     const account = Object.prototype.hasOwnProperty.call(accounts, accountId) ? accounts[accountId] : null;
@@ -1310,6 +1568,7 @@ app.patch('/api/admin/users/:accountId/coins', requirePersistence, requireAdmin,
             adminId: req.account.id,
             note
         });
+        recordAdminAudit(req, 'wallet_adjusted', { accountId, balance: wallet.balance, note });
         return res.json({ wallet, user: accountResponse(account) });
     } catch (error) {
         return res.status(400).json({ error: error.message });
@@ -1389,6 +1648,7 @@ app.put('/api/admin/env', requirePersistence, requireAdmin, async (req, res) => 
     for (const key of changedKeys) process.env[key] = managedAdminEnv[key] || '';
     if (changedKeys.includes('ADMIN_EMAIL')) ADMIN_EMAIL = String(process.env.ADMIN_EMAIL || '').trim().toLowerCase();
     if (changedKeys.includes('ADMIN_PASSWORD')) ADMIN_PASSWORD = String(process.env.ADMIN_PASSWORD || '').trim();
+    recordAdminAudit(req, 'environment_updated', { keys: changedKeys });
 
     const restartRequired = changedKeys.some((key) => definitions.get(key).restart);
     return res.json({
@@ -1403,6 +1663,46 @@ app.put('/api/admin/env', requirePersistence, requireAdmin, async (req, res) => 
 /* =========================================================
    COINS / PALMPESA
 ========================================================= */
+
+app.post('/api/tools/qr', requirePersistence, async (req, res) => {
+    const account = getAccountFromRequest(req);
+    if (!account) return res.status(401).json({ error: 'Login required.' });
+    const text = String(req.body?.text || '').trim();
+    if (!text || text.length > 1000) return res.status(400).json({ error: 'QR text iwe na herufi 1 hadi 1000.' });
+
+    try {
+        const QRCode = require('qrcode');
+        const dataUrl = await QRCode.toDataURL(text, { errorCorrectionLevel: 'M', margin: 2, width: 320 });
+        return res.json({ dataUrl });
+    } catch (_) {
+        return res.status(500).json({ error: 'Imeshindikana kutengeneza QR code.' });
+    }
+});
+
+app.get('/api/tools/news', requirePersistence, async (req, res) => {
+    const account = getAccountFromRequest(req);
+    if (!account) return res.status(401).json({ error: 'Login required.' });
+    const apiKey = String(process.env.NEWS_API_KEY || '').trim();
+    if (!apiKey) return res.status(503).json({ error: 'NewsAPI haijawekwa. Admin aweke NEWS_API_KEY kwenye Environment.' });
+    const categories = new Set(['general', 'business', 'technology', 'science', 'sports']);
+    const category = String(req.query.category || 'general').toLowerCase();
+    if (!categories.has(category)) return res.status(400).json({ error: 'Category ya habari si sahihi.' });
+
+    try {
+        const response = await axios.get('https://newsapi.org/v2/top-headlines', {
+            params: { country: 'us', category, pageSize: 8, apiKey },
+            timeout: 12000
+        });
+        const articles = Array.isArray(response.data?.articles) ? response.data.articles : [];
+        return res.json({ articles: articles.map((article) => ({
+            title: String(article.title || '').slice(0, 240),
+            url: String(article.url || ''),
+            source: String(article.source?.name || '').slice(0, 80)
+        })).filter((article) => article.title && /^https:\/\//.test(article.url)) });
+    } catch (_) {
+        return res.status(502).json({ error: 'NewsAPI imeshindwa kupata habari kwa sasa.' });
+    }
+});
 
 const PALMPESA_BASE_URL = 'https://palmpesa.drmlelwa.co.tz';
 const PALMPESA_API_TOKEN = String(process.env.PALMPESA_API_TOKEN || '').trim();
@@ -1655,9 +1955,10 @@ app.post('/api/bots/:botId/messages', requirePersistence, async (req, res) => {
 
     const now = Date.now();
     const limit = outboundMessageLimits.get(account.id);
-    if (limit && now - limit.startedAt < 60_000 && limit.count >= 10) {
+    const perMinuteLimit = Math.max(1, Math.min(60, Number(account.messageLimitPerMinute) || 10));
+    if (limit && now - limit.startedAt < 60_000 && limit.count >= perMinuteLimit) {
         res.set('Retry-After', String(Math.ceil((60_000 - (now - limit.startedAt)) / 1000)));
-        return res.status(429).json({ error: 'Umefikia kikomo cha ujumbe 10 kwa dakika. Jaribu tena baadaye.' });
+        return res.status(429).json({ error: `Umefikia kikomo cha ujumbe ${perMinuteLimit} kwa dakika. Jaribu tena baadaye.` });
     }
     outboundMessageLimits.set(account.id, {
         startedAt: limit && now - limit.startedAt < 60_000 ? limit.startedAt : now,
@@ -4613,7 +4914,7 @@ io.on(
             const account = session && session.expiresAt > Date.now()
                 ? accounts[session.accountId]
                 : null;
-            if (!account) {
+            if (!account || (!account.isAdmin && Date.parse(account.suspendedUntil || '') > Date.now())) {
                 socket.emit('account-auth-fail', 'Login session expired.');
                 return;
             }
@@ -4786,6 +5087,11 @@ io.on(
                     return;
                 }
 
+                if (!socket.account.isAdmin && Date.parse(socket.account.suspendedUntil || '') > Date.now()) {
+                    socket.emit('pair-error', 'Account yako imesimamishwa kwa muda. Wasiliana na admin.');
+                    return;
+                }
+
                 ensurePairingAccessKey(socket.account);
                 if (String(accessKey || '').trim().toUpperCase() !== socket.account.pairingAccessKey) {
                     socket.emit('pair-error', 'Access key si sahihi.');
@@ -4804,7 +5110,7 @@ io.on(
                 }
 
                 // Admin ana kikomo cha bots 999, user 2
-                const botLimit = socket.account.isAdmin ? 999 : 2;
+                const botLimit = getAccountBotLimit(socket.account);
 
                 if (getAccountBotIds(socket.account.id).length >= botLimit) {
                     socket.emit('pair-error', `Each account can pair only ${botLimit} bots.`);
@@ -5272,6 +5578,7 @@ async function startServer() {
 
         await initializePersistence();
             await loadExistingSessions();
+            restoreScheduledBroadcasts();
         }
     );
 }

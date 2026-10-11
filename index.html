@@ -18,9 +18,10 @@
   :root{
     --bg:#0a0e14;--bg-2:#0f1620;--card:rgba(255,255,255,.035);--card-hover:rgba(255,255,255,.07);
     --stroke:rgba(255,255,255,.08);--stroke-hover:rgba(255,255,255,.18);
-    --accent:#7c5cff;--accent-2:#00d9ff;--accent-3:#ff5c8a;--gold:#ffb800;
+    --accent:#71d7b4;--accent-2:#d5f078;--accent-3:#f08079;--gold:#edbf70;
     --text:#fff;--text-2:#9aa4b2;--text-3:#6b7280;
     --success:#10d97a;--warning:#ffb020;--danger:#ff4757;
+    --radius-sm:10px;--radius:16px;--radius-lg:24px;
     --radius-sm:10px;--radius:16px;--radius-lg:24px;
     --shadow:0 20px 60px rgba(0,0,0,.5);
   }
@@ -31,11 +32,11 @@
   }
   *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
   html{scroll-behavior:smooth;}
-  ::selection{background:rgba(124,92,255,.28);color:#fff;}
+  ::selection{background:rgba(213,240,120,.28);color:#fff;}
   ::-webkit-scrollbar{width:10px;height:10px;}
   ::-webkit-scrollbar-track{background:transparent;}
   ::-webkit-scrollbar-thumb{background:linear-gradient(var(--accent),var(--accent-3));border:3px solid var(--bg);border-radius:10px;}
-  body{background:linear-gradient(135deg,rgba(124,92,255,.08),transparent 42%),linear-gradient(315deg,rgba(0,217,255,.07),transparent 38%),var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-height:100vh;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased;transition:background .3s ease,color .3s ease;}
+  body{background:linear-gradient(135deg,rgba(113,215,180,.1),transparent 42%),linear-gradient(315deg,rgba(240,128,121,.055),transparent 38%),var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-height:100vh;line-height:1.6;overflow-x:hidden;-webkit-font-smoothing:antialiased;transition:background .3s ease,color .3s ease;}
 
   .stat-tile,.bot-card,.setting-row,.connect-card,.logs-container{backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);}
 
@@ -443,6 +444,43 @@
     .message-form-grid{grid-template-columns:1fr;}
     .message-form-grid .field:last-child{grid-column:auto;}
   }
+  .tool-language{margin:0;min-width:150px;}
+  .tool-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;}
+  .tool-card{min-width:0;padding:18px;border-radius:12px;}
+  .tool-card h3{font:700 1rem 'Space Grotesk',sans-serif;margin-bottom:12px;}
+  .tool-form{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 10px;}
+  .tool-form input:not([type=color]),.tool-form select,.tool-card>input[type=file],.tool-card>input:not([type=file]){min-width:0;flex:1 1 130px;padding:10px 11px;border:1px solid var(--stroke);border-radius:8px;background:var(--bg-2);color:var(--text);font:inherit;}
+  .tool-card>textarea{width:100%;margin-bottom:8px;padding:10px 11px;border:1px solid var(--stroke);border-radius:8px;background:var(--bg-2);color:var(--text);font:inherit;}
+  .tool-output{display:grid;gap:7px;margin-top:10px;color:var(--text-2);font-size:.82rem;overflow-wrap:anywhere;}
+  .tool-output:empty{display:none;}
+  .tool-output a{color:var(--accent-2);}
+  .tool-copy,.tool-note{display:block;color:var(--text-2);font-size:.8rem;margin:8px 0;}
+  .tool-actions{display:flex;gap:7px;flex-wrap:wrap;margin:8px 0;}
+  .tool-item{display:flex;align-items:center;gap:8px;padding:7px 9px;border:1px solid var(--stroke);border-radius:7px;background:var(--card);}
+  .tool-item button{margin-left:auto;}
+  .meme-canvas{display:block;width:100%;height:auto;margin-top:10px;border-radius:8px;background:#18221e;}
+  @media(max-width:1050px){.tool-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+  @media(max-width:600px){.tool-grid{grid-template-columns:1fr;}.tool-language{width:100%;}.tool-form .btn{flex:0 0 auto;}}
+  .field input:focus,.field select:focus,.field textarea:focus,.search-bar input:focus{box-shadow:0 0 0 3px rgba(113,215,180,.16);}
+  .btn-primary{box-shadow:0 10px 30px rgba(113,215,180,.2);}
+  .btn-primary:hover{box-shadow:0 15px 40px rgba(113,215,180,.28);}
+  .logo{box-shadow:0 8px 24px rgba(113,215,180,.22);}
+  .nav-item.active{background:linear-gradient(135deg,rgba(113,215,180,.15),rgba(240,128,121,.07));border-color:rgba(113,215,180,.28);}
+  .coin-header{border-color:rgba(113,215,180,.25);background:rgba(113,215,180,.08);color:var(--accent);}
+  .hero{background:linear-gradient(135deg,rgba(113,215,180,.07),transparent 45%);}
+  .account-overview .quota,.stat-icon{background:rgba(113,215,180,.12);border-color:rgba(113,215,180,.2);color:var(--accent);}
+  .stat-icon.lime{background:rgba(213,240,120,.1);border-color:rgba(213,240,120,.2);color:var(--accent-2);}
+  .stat-icon.pink{background:rgba(240,128,121,.1);border-color:rgba(240,128,121,.2);color:var(--accent-3);}
+  .bot-card:hover{background:linear-gradient(180deg,rgba(113,215,180,.08),rgba(255,255,255,.03));box-shadow:0 18px 42px rgba(10,24,18,.3);}
+  .connect-card{background:linear-gradient(145deg,rgba(113,215,180,.08),rgba(213,240,120,.025));border-color:rgba(113,215,180,.2);}
+  .step-num{background:rgba(113,215,180,.15);border-color:rgba(113,215,180,.3);}
+  .pair-result .code-display{background:rgba(213,240,120,.05);border-color:rgba(213,240,120,.4);}
+  #toast{box-shadow:0 15px 40px rgba(113,215,180,.24);}
+  .mobile-nav a.active{background:rgba(113,215,180,.09);}
+  .pulse-icon{background:rgba(113,215,180,.1);}
+  .wallet-card{background:linear-gradient(145deg,rgba(113,215,180,.08),var(--card));}
+  .chart-bar{background:linear-gradient(180deg,var(--accent-2),rgba(213,240,120,.16));}
+  .payment-panel{border-color:rgba(113,215,180,.25);}
   </style>
 </head>
 <body class="auth-checking">
@@ -493,6 +531,7 @@
   <a href="#store" class="nav-item" data-tab="store"><i class="fas fa-store"></i> <span>Marketplace</span></a>
 
   <div class="nav-section-label">Configuration</div>
+  <a href="#tools" class="nav-item" data-tab="tools"><i class="fas fa-toolbox"></i> <span>Tools</span></a>
   <a href="#settings" class="nav-item" data-tab="settings"><i class="fas fa-sliders-h"></i> <span>Settings</span></a>
   <a href="#connect" class="nav-item" data-tab="connect"><i class="fas fa-link"></i> <span>Connect</span></a>
 
@@ -623,6 +662,34 @@
   <section class="section tab-panel" id="store" data-panel="store">
     <div class="section-head"><div class="section-title"><h2>Marketplace</h2><p>Nunua coin packs kwa PalmPesa na uendelee ku-deploy bila kusubiri.</p></div></div>
     <div class="pack-grid"><button class="pack-card buy-pack" data-coins="10" type="button"><strong>Starter Pack</strong><span>Coins 10 · bots 2</span><b>TZS 500 <i class="fas fa-arrow-right"></i></b></button><button class="pack-card buy-pack" data-coins="50" type="button"><strong>Pro Pack</strong><span>Coins 50 · bots 10</span><b>TZS 2,500 <i class="fas fa-arrow-right"></i></b></button><button class="pack-card buy-pack" data-coins="100" type="button"><strong>Enterprise</strong><span>Coins 100 · bots 20</span><b>TZS 5,000 <i class="fas fa-arrow-right"></i></b></button></div>
+  </section>
+
+  <section class="section tab-panel" id="tools" data-panel="tools">
+    <div class="section-head">
+      <div class="section-title"><h2>Everyday tools</h2><p>Utilities za akaunti yako, vikumbusho na utafutaji wa taarifa.</p></div>
+      <div class="field tool-language"><label for="toolsLanguage">Lugha / Language</label><select id="toolsLanguage"><option value="sw">Kiswahili</option><option value="en">English</option></select></div>
+    </div>
+    <div class="tool-grid">
+      <article class="surface tool-card"><h3>Vikumbusho</h3><form id="reminderForm" class="tool-form"><input id="reminderText" maxlength="160" placeholder="Kumbusho..." required><input id="reminderAt" type="datetime-local" required><button class="btn btn-primary btn-sm" type="submit">Weka</button></form><div id="reminderList" class="tool-output" aria-live="polite"></div></article>
+      <article class="surface tool-card"><h3>Kura ya haraka</h3><div class="tool-form"><input id="pollQuestion" maxlength="120" placeholder="Swali la kura"><textarea id="pollOptions" rows="2" placeholder="Chaguo moja kwa kila mstari"></textarea><button class="btn btn-ghost btn-sm" id="createPoll" type="button">Tengeneza kura</button></div><div id="pollOutput" class="tool-output" aria-live="polite"></div></article>
+      <article class="surface tool-card"><h3>Quiz / Trivia</h3><p id="quizQuestion" class="tool-copy">Bonyeza kuanza kupata swali.</p><div id="quizAnswers" class="tool-actions"></div><button class="btn btn-ghost btn-sm" id="nextQuiz" type="button">Swali linalofuata</button><small id="quizScore" class="tool-note">Alama: 0</small></article>
+      <article class="surface tool-card"><h3>Hali ya hewa</h3><form id="weatherForm" class="tool-form"><input id="weatherCity" maxlength="80" placeholder="Jina la mji" required><button class="btn btn-ghost btn-sm" type="submit">Tafuta</button></form><div id="weatherOutput" class="tool-output" aria-live="polite"></div></article>
+      <article class="surface tool-card"><h3>Exchange rate</h3><form id="currencyForm" class="tool-form"><input id="currencyAmount" type="number" min="0" step="any" value="1" required><select id="currencyFrom"><option>TZS</option><option>USD</option><option>EUR</option><option>GBP</option><option>KES</option></select><span>kwa</span><select id="currencyTo"><option>USD</option><option>TZS</option><option>EUR</option><option>GBP</option><option>KES</option></select><button class="btn btn-ghost btn-sm" type="submit">Badilisha</button></form><div id="currencyOutput" class="tool-output" aria-live="polite"></div></article>
+      <article class="surface tool-card"><h3>Calculator</h3><form id="calculatorForm" class="tool-form"><input id="calculatorInput" inputmode="decimal" placeholder="(12 + 8) / 2" required><button class="btn btn-ghost btn-sm" type="submit">Hesabu</button></form><div id="calculatorOutput" class="tool-output" aria-live="polite"></div></article>
+      <article class="surface tool-card"><h3>QR code</h3><form id="qrForm" class="tool-form"><input id="qrText" maxlength="1000" placeholder="Andika maandishi au link" required><button class="btn btn-ghost btn-sm" type="submit">Tengeneza</button></form><div id="qrOutput" class="tool-output" aria-live="polite"></div></article>
+      <article class="surface tool-card"><h3>OCR ya picha</h3><input id="ocrImage" type="file" accept="image/*"><button class="btn btn-ghost btn-sm" id="runOcr" type="button">Toa maandishi</button><pre id="ocrOutput" class="tool-output" aria-live="polite"></pre></article>
+      <article class="surface tool-card"><h3>Muhtasari wa maandishi</h3><textarea id="summaryInput" rows="3" maxlength="12000" placeholder="Bandika maandishi marefu hapa"></textarea><button class="btn btn-ghost btn-sm" id="summarizeText" type="button">Fupisha</button><p id="summaryOutput" class="tool-output" aria-live="polite"></p></article>
+      <article class="surface tool-card"><h3>Contact card</h3><form id="vcardForm" class="tool-form"><input id="vcardName" placeholder="Jina" required><input id="vcardPhone" type="tel" placeholder="Simu"><input id="vcardEmail" type="email" placeholder="Email"><button class="btn btn-ghost btn-sm" type="submit">Pakua vCard</button></form></article>
+      <article class="surface tool-card"><h3>Wikipedia</h3><form id="wikiForm" class="tool-form"><input id="wikiQuery" maxlength="100" placeholder="Tafuta mada" required><button class="btn btn-ghost btn-sm" type="submit">Tafuta</button></form><div id="wikiOutput" class="tool-output" aria-live="polite"></div></article>
+      <article class="surface tool-card"><h3>Habari mpya</h3><form id="newsForm" class="tool-form"><select id="newsCategory"><option value="general">Jumla</option><option value="technology">Teknolojia</option><option value="business">Biashara</option><option value="science">Sayansi</option><option value="sports">Michezo</option></select><button class="btn btn-ghost btn-sm" type="submit">Pakia habari</button></form><div id="newsOutput" class="tool-output" aria-live="polite"></div></article>
+      <article class="surface tool-card"><h3>Crypto prices</h3><form id="cryptoForm" class="tool-form"><select id="cryptoCoin"><option value="bitcoin">Bitcoin</option><option value="ethereum">Ethereum</option><option value="solana">Solana</option><option value="tether">Tether</option></select><button class="btn btn-ghost btn-sm" type="submit">Angalia bei</button></form><div id="cryptoOutput" class="tool-output" aria-live="polite"></div></article>
+      <article class="surface tool-card"><h3>Caption & hashtags</h3><form id="captionForm" class="tool-form"><input id="captionTopic" maxlength="100" placeholder="Mada ya post" required><button class="btn btn-ghost btn-sm" type="submit">Tengeneza</button></form><div id="captionOutput" class="tool-output" aria-live="polite"></div></article>
+      <article class="surface tool-card"><h3>Meme maker</h3><div class="tool-form"><input id="memeTop" maxlength="80" placeholder="Maandishi ya juu"><input id="memeBottom" maxlength="80" placeholder="Maandishi ya chini"><input id="memeColor" type="color" value="#d5f078" aria-label="Rangi ya meme"><button class="btn btn-ghost btn-sm" id="makeMeme" type="button">Tengeneza meme</button><button class="btn btn-ghost btn-sm" id="downloadMeme" type="button">Pakua</button></div><canvas id="memeCanvas" width="640" height="420" class="meme-canvas"></canvas></article>
+      <article class="surface tool-card"><h3>Huduma zilizo karibu</h3><p class="tool-copy">Tumia location yako kutafuta hospitali, ATM na vituo vya polisi vilivyo karibu.</p><button class="btn btn-ghost btn-sm" id="nearbySearch" type="button">Tafuta karibu nami</button><div id="nearbyOutput" class="tool-output" aria-live="polite"></div></article>
+      <article class="surface tool-card"><h3>Checklist</h3><form id="checklistForm" class="tool-form"><input id="checklistText" maxlength="120" placeholder="Kazi ya kufanya" required><button class="btn btn-ghost btn-sm" type="submit">Ongeza</button></form><div id="checklistOutput" class="tool-output"></div></article>
+      <article class="surface tool-card"><h3>Historia ya shughuli</h3><p class="tool-copy">Matukio ya sasa ya dashboard na matumizi ya tools kwenye kifaa hiki.</p><div id="historyOutput" class="tool-output"></div></article>
+      <article class="surface tool-card"><h3>Faragha</h3><p class="tool-copy">Vikumbusho, kura na checklist huhifadhiwa kwenye browser hii; arifa za vikumbusho huhitaji browser iwe imefunguliwa. Utafutaji wa hali ya hewa, habari, crypto na Wikipedia hutumwa kwa huduma husika; OCR hutumia Tesseract.js CDN.</p><button class="btn btn-ghost btn-sm" id="showPrivacy" type="button">Angalia data ya browser</button><div id="privacyOutput" class="tool-output"></div></article>
+    </div>
   </section>
 
   <section class="section tab-panel" id="analytics" data-panel="analytics">
@@ -912,13 +979,13 @@ function applyUserToUI(user) {
   }
 
   var badge = document.getElementById('botsBadge');
-  if (badge) badge.textContent = (user.botCount || 0) + '/' + (user.botLimit || 2);
+  if (badge) badge.textContent = (user.botCount || 0) + '/' + (user.botLimit ?? 2);
   var botsUsed = document.getElementById('heroUptime');
-  if (botsUsed) botsUsed.textContent = (user.botCount || 0) + '/' + (user.botLimit || 2);
+  if (botsUsed) botsUsed.textContent = (user.botCount || 0) + '/' + (user.botLimit ?? 2);
 
   var quota = document.getElementById('accountQuota');
   var quotaFill = document.getElementById('accountQuotaFill');
-  var quotaLimit = Number(user.botLimit || 2);
+  var quotaLimit = Number(user.botLimit ?? 2);
   var quotaCount = Number(user.botCount || 0);
   if (quota) quota.textContent = quotaCount + '/' + quotaLimit;
   if (quotaFill) quotaFill.style.width = Math.min(100, Math.round((quotaCount / Math.max(1, quotaLimit)) * 100)) + '%';
@@ -1242,7 +1309,7 @@ function renderBots(botsArray) {
     var runningBots = document.getElementById('heroAvgResponse');
     if (runningBots) runningBots.textContent = '0';
     var b = document.getElementById('botsBadge');
-    if (b) b.textContent = '0/' + (currentUser?.botLimit || 2);
+    if (b) b.textContent = '0/' + (currentUser?.botLimit ?? 2);
     return;
   }
 
@@ -1292,7 +1359,7 @@ function renderBots(botsArray) {
   if (runningBots) runningBots.textContent = latestBots.filter(function(bot) { return bot.running; }).length;
 
   var b = document.getElementById('botsBadge');
-  if (b) b.textContent = latestBots.length + '/' + (currentUser?.botLimit || 2);
+  if (b) b.textContent = latestBots.length + '/' + (currentUser?.botLimit ?? 2);
 
   // Update settings select
   var sel = document.getElementById('settingsBot');
@@ -1850,5 +1917,6 @@ fetch('/api/server-info')
 
 console.log('[System] Loaded.');
 </script>
+<script src="/tools.js"></script>
 </body>
 </html>
