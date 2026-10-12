@@ -99,8 +99,12 @@ const {
     getWallet,
     listTransactions,
     createPendingTopUp,
+    createManualTopUpRequest,
+    approveManualTopUp,
+    rejectManualTopUp,
     applyPaymentStatus,
     debitForDeployment,
+    refundDeployment,
     setWalletBalance
 } = require('./lib/coinStore');
 
@@ -532,6 +536,30 @@ const io = socketIo(server, {
     ]
 });
 
+function restartRuntime() {
+    const supervised = process.env.pm_id !== undefined || Boolean(
+        process.env.PM2_HOME || process.env.pm2 || process.env.RENDER || process.env.DYNO || process.env.K_SERVICE || fs.existsSync('/.dockerenv')
+    );
+    io.close(() => {
+        if (supervised) {
+            process.exit(0);
+            return;
+        }
+        const child = require('child_process').spawn(process.execPath, process.execArgv.concat(process.argv.slice(1)), {
+            cwd: process.cwd(),
+            env: process.env,
+            detached: true,
+            stdio: 'ignore'
+        });
+        child.once('error', (error) => {
+            console.error('[Restart] Could not launch replacement process:', error.message);
+            process.exit(1);
+        });
+        child.once('spawn', () => process.exit(0));
+        child.unref();
+    });
+}
+
 
 /* =========================================================
    TELEGRAM
@@ -733,12 +761,14 @@ let botData = {
     antilinkGroups: {},
     totalBots: 0,
     registeredBots: [],
+    connectedBots: {},
     statusSettings: {},
     antiDelete: {},
     userNames: {},
     antiCall: {},
     broadcastHistory: {},
     scheduledBroadcasts: [],
+    notificationsByAccount: {},
     adminAuditLog: []
 };
 
@@ -1036,6 +1066,10 @@ function getAccountBotIds(accountId) {
     return Array.isArray(account?.botIds) ? account.botIds : [];
 }
 
+function getAccountSuccessfulBotCount(accountId) {
+    return getAccountBotIds(accountId).filter((botId) => sessions[botId]?.isConnected || botData.connectedBots?.[botId]).length;
+}
+
 function getAccountBotLimit(account) {
     if (account?.isAdmin) return 999;
     const configuredLimit = Number(account?.botLimit);
@@ -1057,7 +1091,7 @@ function accountResponse(account) {
         botLimit: getAccountBotLimit(account),
         messageLimitPerMinute: Math.max(1, Math.min(60, Number(account.messageLimitPerMinute) || 10)),
         suspendedUntil: account.suspendedUntil || null,
-        botCount: getAccountBotIds(account.id).length,
+        botCount: getAccountSuccessfulBotCount(account.id),
         botIds: getAccountBotIds(account.id),
         pairingAccessKey: account.pairingAccessKey,
         coinBalance: wallet.balance,
@@ -1425,8 +1459,59 @@ app.get('/api/admin/operations', requirePersistence, requireAdmin, (req, res) =>
         features,
         auditLog: Array.isArray(botData.adminAuditLog) ? botData.adminAuditLog.slice(0, 60) : [],
         scheduledBroadcasts: Array.isArray(botData.scheduledBroadcasts) ? botData.scheduledBroadcasts : [],
+        pendingManualPayments: listTransactions().filter((item) => item.type === 'MANUAL_COIN_PURCHASE' && item.status === 'PENDING').map((item) => ({
+            ...item,
+            account: accounts[item.accountId] ? { name: accounts[item.accountId].name, email: accounts[item.accountId].email } : null
+        })),
         health: { status: 'ok', persistence: persistenceReady ? 'ready' : 'starting', uptime: Math.round(process.uptime()), onlineBots }
     });
+});
+
+app.post('/api/admin/manual-payments/:transactionId/approve', requirePersistence, requireAdmin, (req, res) => {
+    try {
+        const transaction = approveManualTopUp(req.params.transactionId, req.account.id);
+        const user = accounts[transaction.accountId];
+        createUserNotification(transaction.accountId, {
+            title: 'Malipo yamethibitishwa',
+            message: `Malipo yako ya TZS ${transaction.amount.toLocaleString()} yamethibitishwa. Coins ${transaction.coins} zimeongezwa kwenye wallet yako.`,
+            type: 'payment-approved'
+        });
+        recordAdminAudit(req, 'manual_payment_approved', { transactionId: transaction.id, accountId: transaction.accountId, coins: transaction.coins });
+        return res.json({ success: true, transaction, wallet: getWallet(transaction.accountId), user: user ? accountResponse(user) : null });
+    } catch (error) {
+        return res.status(400).json({ error: error.message });
+    }
+});
+
+app.post('/api/admin/manual-payments/:transactionId/reject', requirePersistence, requireAdmin, (req, res) => {
+    try {
+        const transaction = rejectManualTopUp(req.params.transactionId, req.account.id, req.body?.note);
+        createUserNotification(transaction.accountId, {
+            title: 'Ombi la malipo halikuidhinishwa',
+            message: transaction.adminNote || 'Admin hajaweza kuthibitisha malipo haya. Wasiliana na support kabla ya kutuma ombi jipya.',
+            type: 'payment-rejected'
+        });
+        recordAdminAudit(req, 'manual_payment_rejected', { transactionId: transaction.id, accountId: transaction.accountId });
+        return res.json({ success: true, transaction });
+    } catch (error) {
+        return res.status(400).json({ error: error.message });
+    }
+});
+
+app.post('/api/admin/notifications', requirePersistence, requireAdmin, (req, res) => {
+    const title = String(req.body?.title || '').trim();
+    const message = String(req.body?.message || '').trim();
+    const targetId = String(req.body?.accountId || '').trim();
+    if (!title || title.length > 120 || !message || message.length > 1000) {
+        return res.status(400).json({ error: 'Weka kichwa na ujumbe wa notification (hadi herufi 1000).' });
+    }
+    const recipients = targetId === 'all'
+        ? Object.values(accounts).filter((account) => !account.isAdmin)
+        : (accounts[targetId] ? [accounts[targetId]] : []);
+    if (!recipients.length) return res.status(404).json({ error: 'Chagua user aliyepo au users wote.' });
+    for (const recipient of recipients) createUserNotification(recipient.id, { title, message, type: 'admin-message' });
+    recordAdminAudit(req, 'notification_sent', { accountId: targetId, recipients: recipients.length });
+    return res.json({ success: true, recipients: recipients.length });
 });
 
 app.patch('/api/admin/users/:accountId/role', requirePersistence, requireAdmin, async (req, res) => {
@@ -1650,13 +1735,17 @@ app.put('/api/admin/env', requirePersistence, requireAdmin, async (req, res) => 
     if (changedKeys.includes('ADMIN_PASSWORD')) ADMIN_PASSWORD = String(process.env.ADMIN_PASSWORD || '').trim();
     recordAdminAudit(req, 'environment_updated', { keys: changedKeys });
 
-    const restartRequired = changedKeys.some((key) => definitions.get(key).restart);
+    res.once('finish', () => {
+        const restartTimer = setTimeout(() => {
+            restartRuntime();
+        }, 700);
+        if (typeof restartTimer.unref === 'function') restartTimer.unref();
+    });
     return res.json({
         success: true,
-        restartRequired,
-        message: restartRequired
-            ? 'Env zimehifadhiwa. Restart server ili mabadiliko yote yaanze.'
-            : 'Env zimehifadhiwa na mabadiliko yameanza.'
+        restartRequired: true,
+        restartScheduled: true,
+        message: 'Env zimehifadhiwa. Server inajianzisha upya sasa ili mabadiliko yote yaanze.'
     });
 });
 
@@ -1722,6 +1811,66 @@ function paymentReferenceFromPayload(payload) {
     const item = Array.isArray(payload?.data) ? payload.data[0] : payload?.data;
     return payload?.order_id || item?.order_id || payload?.transaction_id || payload?.reference || item?.reference || null;
 }
+
+function createUserNotification(accountId, { title, message, type = 'info' }) {
+    botData.notificationsByAccount = botData.notificationsByAccount || {};
+    const items = botData.notificationsByAccount[accountId] || [];
+    const notification = {
+        id: `notice_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`,
+        title: String(title || 'Taarifa').slice(0, 120),
+        message: String(message || '').slice(0, 1000),
+        type: String(type).slice(0, 30),
+        createdAt: new Date().toISOString(),
+        readAt: null
+    };
+    botData.notificationsByAccount[accountId] = [notification, ...items].slice(0, 100);
+    saveBotData();
+    io.sockets.sockets.forEach((socket) => {
+        if (socket.account?.id === accountId) socket.emit('user-notification', notification);
+    });
+    return notification;
+}
+
+app.post('/api/manual-payments', requirePersistence, (req, res) => {
+    const account = getAccountFromRequest(req);
+    if (!account) return res.status(401).json({ error: 'Login required.' });
+    const payerPhone = normalizeAccountPhone(req.body?.payerPhone);
+    if (!isValidInternationalPhone(payerPhone)) return res.status(400).json({ error: 'Weka namba sahihi ya simu uliyolipia.' });
+
+    try {
+        const transaction = createManualTopUpRequest({
+            accountId: account.id,
+            amount: req.body?.amount,
+            payerPhone,
+            reference: req.body?.reference
+        });
+        const admins = Object.values(accounts).filter((item) => item.isAdmin);
+        admins.forEach((admin) => createUserNotification(admin.id, {
+            title: 'Ombi jipya la malipo',
+            message: `${account.name || account.email || account.id} ametuma TZS ${transaction.amount.toLocaleString()} · ${transaction.coins} coins · ref ${transaction.reference}.`,
+            type: 'manual-payment'
+        }));
+        return res.status(201).json({ success: true, transaction, paymentDetails: { receiver: '255615944741', recipientName: 'MICKDADI HAMZA SALIM', network: 'Halotel' } });
+    } catch (error) {
+        return res.status(400).json({ error: error.message });
+    }
+});
+
+app.get('/api/notifications', requirePersistence, (req, res) => {
+    const account = getAccountFromRequest(req);
+    if (!account) return res.status(401).json({ error: 'Login required.' });
+    return res.json({ notifications: (botData.notificationsByAccount?.[account.id] || []).slice(0, 50) });
+});
+
+app.patch('/api/notifications/:notificationId/read', requirePersistence, (req, res) => {
+    const account = getAccountFromRequest(req);
+    if (!account) return res.status(401).json({ error: 'Login required.' });
+    const notification = (botData.notificationsByAccount?.[account.id] || []).find((item) => item.id === req.params.notificationId);
+    if (!notification) return res.status(404).json({ error: 'Notification haijapatikana.' });
+    notification.readAt = new Date().toISOString();
+    saveBotData();
+    return res.json({ success: true });
+});
 
 app.get('/api/wallet', requirePersistence, (req, res) => {
     const account = getAccountFromRequest(req);
@@ -1821,6 +1970,7 @@ const sessions = {};
 const userSockets = {};
 const messageLogs = {};
 const outboundMessageLimits = new Map();
+const pendingDeploymentTimers = new Map();
 const dashboardStats = {
     totalMessages: 0,
     users: new Set()
@@ -1831,6 +1981,12 @@ function getDashboardStats() {
         totalMessages: dashboardStats.totalMessages,
         totalUsers: dashboardStats.users.size
     };
+}
+
+function getAccountReservedBotCount(accountId) {
+    return getAccountBotIds(accountId).filter((botId) =>
+        botData.connectedBots?.[botId] || sessions[botId]?.isConnected || sessions[botId]?.isInitializing || pendingDeploymentTimers.has(botId)
+    ).length;
 }
 
 function getDashboardBotState() {
@@ -1877,7 +2033,7 @@ function getDashboardBotState() {
             connecting: Boolean(session?.isInitializing),
             settings: settingsForBot
         };
-    });
+    }).filter((bot) => bot.running || botData.connectedBots?.[bot.id]);
 }
 
 function emitDashboardBotState() {
@@ -4695,6 +4851,14 @@ class BotSession {
                         this.isConnected =
                             true;
 
+                        botData.connectedBots = botData.connectedBots || {};
+                        botData.connectedBots[this.userId] = true;
+                        saveBotData();
+
+                        const deploymentTimer = pendingDeploymentTimers.get(this.userId);
+                        if (deploymentTimer) clearTimeout(deploymentTimer);
+                        pendingDeploymentTimers.delete(this.userId);
+
                         this.reconnectAttempts = 0;
 
                         this.isInitializing =
@@ -5112,7 +5276,7 @@ io.on(
                 // Admin ana kikomo cha bots 999, user 2
                 const botLimit = getAccountBotLimit(socket.account);
 
-                if (getAccountBotIds(socket.account.id).length >= botLimit) {
+                if (getAccountReservedBotCount(socket.account.id) >= botLimit) {
                     socket.emit('pair-error', `Each account can pair only ${botLimit} bots.`);
                     return;
                 }
@@ -5149,6 +5313,40 @@ io.on(
 
                     sessions[userId].accountId = socket.account.id;
                 }
+
+                const deploymentAccountId = socket.account.id;
+                const deploymentTimer = setTimeout(async () => {
+                    pendingDeploymentTimers.delete(userId);
+                    const session = sessions[userId];
+                    if (session?.isConnected) return;
+                    if (session) {
+                        session.connectionGeneration += 1;
+                        if (session.reconnectTimer) clearTimeout(session.reconnectTimer);
+                        try { session.sock?.end(new Error('Pairing timed out')); } catch (_) {}
+                        delete sessions[userId];
+                    }
+                    delete userSockets[userId];
+                    if (botData.connectedBots) delete botData.connectedBots[userId];
+                    if (botData.statusSettings) delete botData.statusSettings[userId];
+                    if (botData.userNames) delete botData.userNames[userId];
+                    saveBotData();
+                    const owner = accounts[deploymentAccountId];
+                    if (owner) {
+                        owner.botIds = (owner.botIds || []).filter((id) => id !== userId);
+                        await saveAccounts({ strict: true }).catch((error) => console.error('[Pairing] Account cleanup failed:', error.message));
+                    }
+                    try { fs.removeSync(path.join(AUTH_DIR, userId)); } catch (_) {}
+                    const refund = owner && !owner.isAdmin ? refundDeployment(deploymentAccountId, userId) : null;
+                    const message = refund
+                        ? `Bot haikufanikiwa ku-connect ndani ya dakika 2. Coins ${COINS_PER_BOT} zimerudishwa.`
+                        : 'Bot haikufanikiwa ku-connect ndani ya dakika 2. Jaribu ku-pair tena.';
+                    createUserNotification(deploymentAccountId, { title: 'Bot haikuweza kuwaka', message, type: 'bot-deployment-failed' });
+                    io.to(socket.id).emit('pair-error', message);
+                    if (refund) io.to(socket.id).emit('wallet-updated', { wallet: refund.wallet });
+                    emitDashboardBotState();
+                }, 120000);
+                if (typeof deploymentTimer.unref === 'function') deploymentTimer.unref();
+                pendingDeploymentTimers.set(userId, deploymentTimer);
 
                 if (
                     !botData.statusSettings[

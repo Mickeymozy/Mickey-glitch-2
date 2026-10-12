@@ -5,6 +5,7 @@ const path = require('path');
 const axios = require('axios');
 const AdmZip = require('adm-zip');
 const chalk = require('chalk');
+const isOwnerOrSudo = require('../lib/isOwner');
 
 const REPO_OWNER = 'Mickeydeveloper';
 const REPO_NAME = 'Mickey-Glitch-2';
@@ -145,32 +146,45 @@ function syncExtractedRepo(sourceRoot, targetRoot, ignoreSet) {
 
 function restartBot(delayMs = 2500) {
     console.log(chalk.yellow(`[Restart] Restarting bot in ${delayMs}ms...`));
-
-    if (typeof process.send === 'function') {
-        try {
-            process.send('restart');
-        } catch (e) {}
-    }
-
-    if (process.env.pm2 || process.env.npm_lifecycle_event === 'start') {
-        exec('pm2 restart ecosystem.config.js --env production', (err) => {
-            if (err) {
-                console.error(chalk.red('PM2 restart failed:'), err.message);
-                setTimeout(() => process.exit(1), delayMs);
-            }
-        });
-        return;
-    }
-
     setTimeout(() => {
-        process.exit(1);
+        const supervised = process.env.pm_id !== undefined || process.env.PM2_HOME || process.env.pm2 ||
+            process.env.RENDER || process.env.DYNO || process.env.K_SERVICE || fs.existsSync('/.dockerenv');
+        if (process.env.pm_id !== undefined || process.env.PM2_HOME || process.env.pm2) {
+            exec('pm2 restart ecosystem.config.js --env production', (error) => {
+                if (error) {
+                    console.error(chalk.red('PM2 restart failed:'), error.message);
+                    process.exit(1);
+                }
+            });
+            return;
+        }
+        if (supervised) {
+            process.exit(0);
+            return;
+        }
+
+        const child = require('child_process').spawn(process.execPath, process.execArgv.concat(process.argv.slice(1)), {
+            cwd: process.cwd(),
+            env: process.env,
+            detached: true,
+            stdio: 'ignore'
+        });
+        child.once('error', (error) => {
+            console.error(chalk.red('Replacement process failed to start:'), error.message);
+            process.exit(1);
+        });
+        child.once('spawn', () => process.exit(0));
+        child.unref();
     }, delayMs);
 }
 
 async function updateCommand(sock, chatId, message, zipUrl) {
     try {
-        const isOwner = message.key.fromMe;
-        if (!isOwner) return;
+        const senderId = message.key.participant || message.key.remoteJid;
+        if (!message.key.fromMe && !isOwnerOrSudo(senderId, sock)) {
+            await sock.sendMessage(chatId, { text: 'Amri hii inaruhusiwa kwa owner au sudo pekee.' }, { quoted: message });
+            return;
+        }
 
         await sock.sendMessage(chatId, { react: { text: '⏳', key: message.key } });
 
@@ -242,11 +256,26 @@ async function updateCommand(sock, chatId, message, zipUrl) {
                 'auth_info',
                 'auth_info_baileys',
                 'data',
+                'logs',
                 '.git',
+                '.env',
+                '.env.local',
                 'temp_update'
             ]);
 
             const deletedFiles = syncExtractedRepo(repoRoot, process.cwd(), ignore);
+
+            try {
+                const latest = await axios.get(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/commits/main`, {
+                    headers: { 'User-Agent': 'MickeyBot' },
+                    timeout: 12000
+                });
+                const versionFile = path.join(process.cwd(), 'data', 'currentVersion.json');
+                fs.ensureDirSync(path.dirname(versionFile));
+                fs.writeJsonSync(versionFile, { sha: latest.data.sha, updatedAt: new Date().toISOString() }, { spaces: 2 });
+            } catch (versionError) {
+                console.warn(chalk.yellow('[Update] Imeshindikana kurekodi commit SHA:'), versionError.message);
+            }
 
             fs.removeSync(tmpDir);
 

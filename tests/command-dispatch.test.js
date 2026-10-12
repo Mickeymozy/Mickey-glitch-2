@@ -4,9 +4,16 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 
 const { invokeCommand } = require('../lib/commandInvoker');
+const { parseCommandArgs } = require('../commands/checkupdates');
 const statusModulePath = require.resolve('../commands/autostatus');
 const { handleStatusUpdate, handleAutoStatus } = require('../commands/autostatus');
 const CONFIG_PATH = path.join(__dirname, '../data/autoStatus.json');
+
+test('checkupdates parses full command text with custom prefixes', () => {
+  assert.deepEqual(parseCommandArgs('.checkupdates auto'), ['auto']);
+  assert.deepEqual(parseCommandArgs('!checkupdates status'), ['status']);
+  assert.deepEqual(parseCommandArgs(['status']), ['status']);
+});
 
 test('status handler is exported under both compatibility names', () => {
   assert.equal(typeof handleStatusUpdate, 'function');

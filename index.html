@@ -481,30 +481,29 @@
   .wallet-card{background:linear-gradient(145deg,rgba(113,215,180,.08),var(--card));}
   .chart-bar{background:linear-gradient(180deg,var(--accent-2),rgba(213,240,120,.16));}
   .payment-panel{border-color:rgba(113,215,180,.25);}
+  .notification-wrap{position:relative;}
+  .notification-panel{position:absolute;top:calc(100% + 12px);right:0;z-index:120;width:min(380px,calc(100vw - 24px));max-height:min(70vh,520px);overflow:auto;padding:14px;border:1px solid var(--stroke-hover);border-radius:10px;background:var(--bg-2);box-shadow:var(--shadow);}
+  .notification-head{display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--stroke);}
+  .notification-head .icon-btn{width:34px;height:34px;}
+  .notification-list{display:grid;gap:8px;padding-top:10px;}
+  .notification-item{display:grid;gap:4px;padding:10px;border:1px solid var(--stroke);border-radius:7px;background:var(--card);}
+  .notification-item.unread{border-left:3px solid var(--accent-2);}
+  .notification-item strong{font-size:.84rem;}
+  .notification-item p,.notification-item time{margin:0;color:var(--text-2);font-size:.75rem;overflow-wrap:anywhere;}
+  .manual-payment{display:grid;grid-template-columns:minmax(220px,.8fr) minmax(0,1.2fr);gap:24px;margin-top:18px;padding:20px;border-radius:10px;}
+  .manual-payment h3{margin:7px 0;font:700 1.1rem 'Space Grotesk',sans-serif;}
+  .manual-payment>div>p{color:var(--text-2);font-size:.82rem;}
+  .manual-payment-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px;}
+  .manual-payment-form .field:nth-child(3),.manual-payment-form button,.manual-payment-form .alert{grid-column:1/-1;}
+  .manual-payment-form input{width:100%;padding:10px 12px;border:1px solid var(--stroke);border-radius:8px;background:var(--bg-2);color:var(--text);font:inherit;}
+  .manual-payment-form .alert{margin:0;}
+  @media(max-width:700px){.manual-payment{grid-template-columns:1fr;gap:12px;padding:16px}.manual-payment-form{grid-template-columns:1fr}.manual-payment-form .field,.manual-payment-form button,.manual-payment-form .alert{grid-column:auto}.notification-panel{position:fixed;top:68px;right:12px;}}
   </style>
 </head>
 <body class="auth-checking">
 
 <div class="bg-layer">
   <div class="bg-grid"></div>
-</div>
-
-<div id="botLinkModal" style="display:none;position:fixed;inset:0;z-index:50;background:rgba(5,7,12,.78);align-items:center;justify-content:center;padding:20px;">
-  <div class="auth-card" style="width:min(440px,100%);">
-    <h2 id="botLinkTitle" style="font-size:1.35rem;">Unganisha bot yako</h2>
-    <p class="subtitle" id="botLinkSubtitle">Weka token ya bot au pair WhatsApp mpya. Dashboard itafunguka bot ikisha-connect.</p>
-    <div class="field"><label for="linkBotToken">Bot token</label><input type="text" id="linkBotToken" placeholder="Mickey-123456" autocomplete="one-time-code" spellcheck="false"></div>
-    <button class="btn btn-primary" id="linkBotButton" type="button" style="width:100%;margin-top:16px;"><i class="fas fa-link"></i> Unganisha bot</button>
-    <div style="margin:18px 0;border-top:1px solid var(--stroke);"></div>
-    <div class="field"><label for="linkBotPhone">Huna token? Weka namba ya WhatsApp</label><input type="tel" id="linkBotPhone" placeholder="+255 612 130 873" autocomplete="tel" inputmode="tel"></div>
-    <button class="btn btn-ghost" id="pairBotButton" type="button" style="width:100%;margin-top:12px;"><i class="fas fa-mobile-screen-button"></i> Pair bot mpya</button>
-    <div id="linkPairResult" style="display:none;margin-top:14px;padding:14px;border:1px dashed var(--accent);border-radius:12px;text-align:center;">
-      <div style="font-size:.75rem;color:var(--text-2);margin-bottom:6px;">WhatsApp pairing code</div>
-      <strong id="linkPairCode" style="font-family:'Space Grotesk',sans-serif;font-size:1.5rem;letter-spacing:.12em;color:var(--accent-2);">—</strong>
-      <div id="linkPairStatus" style="font-size:.75rem;color:var(--text-2);margin-top:6px;">Subiri bot i-connect...</div>
-    </div>
-    <div class="auth-error" id="botLinkError"></div>
-  </div>
 </div>
 
 <!-- SIDEBAR -->
@@ -554,7 +553,13 @@
     <div class="topbar-actions">
       <div class="coin-header" aria-live="polite"><i class="fas fa-coins"></i><span id="headerCoinBalance">0</span> coins</div>
       <button class="btn btn-primary btn-sm quick-deposit" id="headerDepositButton" type="button"><i class="fas fa-plus"></i> Deposit</button>
-      <button class="icon-btn" id="notificationsBtn" title="Notifications"><i class="fas fa-bell"></i><span class="dot"></span></button>
+      <div class="notification-wrap">
+        <button class="icon-btn" id="notificationsBtn" type="button" title="Notifications" aria-label="Notifications" aria-expanded="false" aria-controls="notificationPanel"><i class="fas fa-bell"></i><span class="dot"></span></button>
+        <section class="notification-panel" id="notificationPanel" aria-label="Notifications" hidden>
+          <div class="notification-head"><strong>Notifications</strong><button class="icon-btn" id="closeNotifications" type="button" title="Funga notifications" aria-label="Funga notifications"><i class="fas fa-xmark"></i></button></div>
+          <div class="notification-list" id="notificationList" aria-live="polite"><p class="tool-copy">Inapakia...</p></div>
+        </section>
+      </div>
       <button class="icon-btn theme-toggle" id="themeToggle" type="button" title="Badili theme" aria-label="Badili theme" aria-pressed="false"><i class="fas fa-sun"></i></button>
       <button class="icon-btn" title="Refresh" id="refreshBtn"><i class="fas fa-sync-alt"></i></button>
       <div class="user-chip">
@@ -655,6 +660,16 @@
     <div class="view-grid">
       <div class="surface"><div class="wallet-label">Available balance</div><div class="wallet-balance" id="walletViewBalance">0</div><p id="walletViewMeta">Coins 5 kwa bot deployment</p><div class="utility-list"><button class="btn btn-primary" id="walletDepositButton" type="button"><i class="fas fa-plus"></i> Ongeza coins</button><button class="btn btn-ghost coin-utility" data-utility="packs" type="button"><i class="fas fa-store"></i> Angalia coin packs</button></div></div>
       <div class="surface"><h3>Wallet health</h3><p>Ufuatiliaji wa matumizi ya coin kwa workspace hii.</p><div class="bot-metrics" style="margin-top:18px;"><div class="metric"><div class="v" id="walletDeployableBots">0</div><div class="l">Deployable</div></div><div class="metric"><div class="v" id="walletTransactionCount">0</div><div class="l">Transactions</div></div><div class="metric"><div class="v" id="walletSpendRate">0</div><div class="l">Spent</div></div></div></div>
+    </div>
+    <div class="manual-payment surface">
+      <div><div class="eyebrow">Manual Halotel payment</div><h3>Lipa kwa simu</h3><p>Tuma malipo kwa namba <strong>255615944741</strong> · Halotel · <strong>MICKDADI HAMZA SALIM</strong>. Kila TZS 50 ni coin 1. Coins zitaongezwa baada ya admin kuthibitisha risiti.</p></div>
+      <form id="manualPaymentForm" class="manual-payment-form">
+        <div class="field"><label for="manualPayerPhone">Namba uliyolipia</label><input id="manualPayerPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="2556..." required></div>
+        <div class="field"><label for="manualPaymentAmount">Kiasi (TZS, hatua za 50)</label><input id="manualPaymentAmount" type="number" min="50" step="50" placeholder="500" required><small id="manualCoinPreview">0 coins</small></div>
+        <div class="field"><label for="manualPaymentReference">Uthibitisho / transaction ID</label><input id="manualPaymentReference" maxlength="80" placeholder="Reference ya SMS ya malipo" required></div>
+        <button class="btn btn-primary" id="submitManualPayment" type="submit"><i class="fas fa-receipt"></i> Tuma ombi la activation</button>
+        <p class="alert" id="manualPaymentStatus" role="status" aria-live="polite"></p>
+      </form>
     </div>
     <div class="history-card"><div class="history-toolbar"><div class="section-title"><h3>Full transaction history</h3><p>Inasasishwa baada ya payment au bot deployment.</p></div></div><table class="history-table"><thead><tr><th>Tarehe</th><th>Muamala</th><th>Coins</th><th>Status</th></tr></thead><tbody id="walletTransactionHistory"><tr><td colspan="4">Inapakia...</td></tr></tbody></table></div>
   </section>
@@ -996,6 +1011,7 @@ function applyUserToUI(user) {
   var pairingKey = document.getElementById('pairingAccessKey');
   if (pairingKey) pairingKey.textContent = user.pairingAccessKey || '—';
   updateWalletUI(user);
+  loadNotifications();
 
   document.body.classList.add('authenticated');
 }
@@ -1039,9 +1055,9 @@ function renderTransactionHistory(items) {
     body.innerHTML = '<tr><td colspan="4">Hakuna transaction bado.</td></tr>';
   } else {
     body.innerHTML = visibleItems.slice(0, 20).map(function(item) {
-      var type = item.type === 'BOT_DEPLOYMENT' ? 'Auto-deduct ya Deploy' : item.type === 'ADMIN_ADJUSTMENT' ? 'Marekebisho ya admin' : 'Nunuzi ya Coin';
+      var type = item.type === 'BOT_DEPLOYMENT' ? 'Auto-deduct ya Deploy' : item.type === 'DEPLOYMENT_REFUND' ? 'Refund ya bot' : item.type === 'MANUAL_COIN_PURCHASE' ? 'Manual Halotel' : item.type === 'ADMIN_ADJUSTMENT' ? 'Marekebisho ya admin' : 'Nunuzi ya Coin';
       var status = item.status || 'PENDING';
-      var statusClass = status === 'SUCCESS' ? 'success' : status === 'FAILED' ? 'failed' : 'pending';
+      var statusClass = status === 'SUCCESS' || status === 'REFUNDED' ? 'success' : status === 'FAILED' ? 'failed' : 'pending';
       return '<tr><td>' + escapeHtml(new Date(item.createdAt).toLocaleString()) + '</td><td>' + escapeHtml(type) + ' (' + escapeHtml(item.coins || 0) + ')</td><td>' + escapeHtml(item.orderId || item.transactionId || '—') + '</td><td><span class="status-badge ' + statusClass + '">' + escapeHtml(status) + '</span></td></tr>';
     }).join('');
   }
@@ -1049,8 +1065,9 @@ function renderTransactionHistory(items) {
   if (walletBody) {
     walletBody.innerHTML = latestTransactions.length ? latestTransactions.map(function(item) {
       var status = item.status || 'PENDING';
-      var statusClass = status === 'SUCCESS' ? 'success' : status === 'FAILED' ? 'failed' : 'pending';
-      return '<tr><td>' + escapeHtml(new Date(item.createdAt).toLocaleString()) + '</td><td>' + escapeHtml(item.type || 'Wallet') + '</td><td>' + escapeHtml(item.coins || 0) + '</td><td><span class="status-badge ' + statusClass + '">' + escapeHtml(status) + '</span></td></tr>';
+      var statusClass = status === 'SUCCESS' || status === 'REFUNDED' ? 'success' : status === 'FAILED' ? 'failed' : 'pending';
+      var type = item.type === 'MANUAL_COIN_PURCHASE' ? 'Manual Halotel' : item.type === 'DEPLOYMENT_REFUND' ? 'Deployment refund' : (item.type || 'Wallet');
+      return '<tr><td>' + escapeHtml(new Date(item.createdAt).toLocaleString()) + '</td><td>' + escapeHtml(type) + '</td><td>' + escapeHtml(item.coins || 0) + '</td><td><span class="status-badge ' + statusClass + '">' + escapeHtml(status) + '</span></td></tr>';
     }).join('') : '<tr><td colspan="4">Hakuna transaction bado.</td></tr>';
   }
   var count = document.getElementById('walletTransactionCount');
@@ -1068,6 +1085,89 @@ function loadWallet() {
   }).catch(function() {});
 }
 
+function renderNotifications(items) {
+  var list = document.getElementById('notificationList');
+  if (!list) return;
+  list.replaceChildren();
+  var notifications = Array.isArray(items) ? items : [];
+  var unread = notifications.filter(function(item) { return !item.readAt; }).length;
+  var dot = document.querySelector('#notificationsBtn .dot');
+  if (dot) dot.style.display = unread ? 'block' : 'none';
+  if (!notifications.length) {
+    var empty = document.createElement('p');
+    empty.className = 'tool-copy';
+    empty.textContent = 'Bado huna notification.';
+    list.appendChild(empty);
+    return;
+  }
+  notifications.forEach(function(item) {
+    var row = document.createElement('article');
+    row.className = 'notification-item' + (item.readAt ? '' : ' unread');
+    var title = document.createElement('strong');
+    title.textContent = item.title || 'Taarifa';
+    var message = document.createElement('p');
+    message.textContent = item.message || '';
+    var time = document.createElement('time');
+    time.dateTime = item.createdAt || '';
+    time.textContent = item.createdAt ? new Date(item.createdAt).toLocaleString() : '';
+    row.append(title, message, time);
+    if (!item.readAt) row.addEventListener('click', function() {
+      fetch('/api/notifications/' + encodeURIComponent(item.id) + '/read', { method: 'PATCH' })
+        .then(readJsonResponse).then(function() { loadNotifications(); });
+    });
+    list.appendChild(row);
+  });
+}
+
+function loadNotifications() {
+  return fetch('/api/notifications').then(readJsonResponse).then(function(result) {
+    if (result.ok) renderNotifications(result.data.notifications);
+  }).catch(function() {});
+}
+
+var manualAmountInput = document.getElementById('manualPaymentAmount');
+if (manualAmountInput) manualAmountInput.addEventListener('input', function() {
+  var coins = Number(manualAmountInput.value || 0) / 50;
+  var preview = document.getElementById('manualCoinPreview');
+  if (preview) preview.textContent = Number.isInteger(coins) ? coins + ' coins' : 'Kiasi kigawanyike kwa TZS 50';
+});
+
+var manualPaymentForm = document.getElementById('manualPaymentForm');
+if (manualPaymentForm) manualPaymentForm.addEventListener('submit', function(event) {
+  event.preventDefault();
+  var button = document.getElementById('submitManualPayment');
+  var status = document.getElementById('manualPaymentStatus');
+  var amount = Number(document.getElementById('manualPaymentAmount').value);
+  if (!Number.isSafeInteger(amount) || amount < 50 || amount % 50 !== 0) {
+    status.className = 'alert show error';
+    status.textContent = 'Kiasi kiwe TZS 50 au zaidi na kigawanyike kwa 50.';
+    return;
+  }
+  button.disabled = true;
+  status.className = 'alert show warn';
+  status.textContent = 'Inatuma ombi...';
+  fetch('/api/manual-payments', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      payerPhone: normalizePhone(document.getElementById('manualPayerPhone').value),
+      amount: amount,
+      reference: document.getElementById('manualPaymentReference').value.trim()
+    })
+  }).then(readJsonResponse).then(function(result) {
+    if (!result.ok) throw new Error(result.data.error || 'Ombi halikutumwa.');
+    status.className = 'alert show success';
+    status.textContent = 'Ombi limetumwa kwa admin. Coins zitaingia baada ya kuthibitishwa.';
+    manualPaymentForm.reset();
+    document.getElementById('manualCoinPreview').textContent = '0 coins';
+    loadWallet();
+    loadNotifications();
+  }).catch(function(error) {
+    status.className = 'alert show error';
+    status.textContent = error.message;
+  }).finally(function() { button.disabled = false; });
+});
+
 function requestPairAccessKey() {
   return currentUser && currentUser.pairingAccessKey ? currentUser.pairingAccessKey : null;
 }
@@ -1075,67 +1175,14 @@ function requestPairAccessKey() {
 var waitingBotId = '';
 
 function setBotLinkWaiting(message) {
-  var title = document.getElementById('botLinkTitle');
-  var subtitle = document.getElementById('botLinkSubtitle');
-  if (title) title.textContent = 'Bot ina-connect...';
-  if (subtitle) subtitle.textContent = message || 'Subiri WhatsApp i-connect. Dashboard itafunguka ikimaliza.';
-  var modal = document.getElementById('botLinkModal');
-  if (modal) modal.style.display = 'flex';
-  var linkButton = document.getElementById('linkBotButton');
-  var pairButton = document.getElementById('pairBotButton');
-  if (linkButton) linkButton.disabled = true;
-  if (pairButton) pairButton.disabled = true;
+  setStatus(message || 'Subiri WhatsApp i-connect.', 'warn');
 }
 
 function finishBotConnection(botIds) {
   if (!waitingBotId || !botIds || botIds.indexOf(waitingBotId) < 0) return;
   waitingBotId = '';
-  var modal = document.getElementById('botLinkModal');
-  if (modal) modal.style.display = 'none';
   showToast('Bot ime-connect. Karibu kwenye dashboard!');
 }
-
-var linkBotButton = document.getElementById('linkBotButton');
-var pairBotButton = document.getElementById('pairBotButton');
-if (linkBotButton) linkBotButton.addEventListener('click', function() {
-  var botToken = document.getElementById('linkBotToken').value
-    .replace(/[\s`'"“”‘’]+/g, '').trim();
-  if (!botToken) {
-    showError('botLinkError', 'Weka token ya bot.');
-    return;
-  }
-  linkBotButton.disabled = true;
-  fetch('/api/account/link-bot', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ botToken: botToken })
-  })
-  .then(readJsonResponse)
-  .then(function(res) {
-    if (!res.ok) throw new Error(res.data.error || 'Bot haijaunganishwa.');
-    applyUserToUI(res.data.account);
-    loadWallet();
-    waitingBotId = (res.data.account.botIds || []).slice(-1)[0] || '';
-    setBotLinkWaiting('Token imekubaliwa. Subiri bot i-connect kabla ya kuingia dashboard.');
-    if (socket) socket.emit('account-auth');
-  })
-  .catch(function(err) { showError('botLinkError', err.message); })
-  .finally(function() { linkBotButton.disabled = Boolean(waitingBotId); });
-});
-if (pairBotButton) pairBotButton.addEventListener('click', function() {
-  var number = normalizePhone(document.getElementById('linkBotPhone').value);
-  if (!isValidInternationalPhone(number)) {
-    showError('botLinkError', 'Weka namba halali ya WhatsApp, mfano +255 612 130 873.');
-    return;
-  }
-  var accessKey = requestPairAccessKey();
-  if (accessKey === null) return;
-  pairBotButton.disabled = true;
-  pairBotButton.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Inaunda pairing code...';
-  var result = document.getElementById('linkPairResult');
-  if (result) result.style.display = 'block';
-  if (socket) socket.emit('pair-request', { number: number, accessKey: accessKey });
-});
 
 /* ============================================================
    LOGOUT
@@ -1203,6 +1250,11 @@ if (socket) {
     if (entry && /coin|wallet|deploy|reward/i.test(entry.message || '')) loadWallet();
   });
 
+  socket.on('user-notification', function(notification) {
+    if (notification) showToast(notification.title || 'Notification mpya');
+    loadNotifications();
+  });
+
   socket.on('wallet-updated', function(payload) {
     if (!payload || !payload.wallet) return;
     updateWalletUI({ coinBalance: payload.wallet.balance, deployableBots: payload.wallet.deployableBots });
@@ -1246,12 +1298,6 @@ if (socket) {
   socket.on('pairing-code', function(code) {
     var btn = document.getElementById('requestPairing');
     if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-key"></i> Request Pairing Code'; }
-    var linkPairCode = document.getElementById('linkPairCode');
-    if (linkPairCode) linkPairCode.textContent = code || '—';
-    var linkPairStatus = document.getElementById('linkPairStatus');
-    if (linkPairStatus) linkPairStatus.textContent = 'Ingiza code hii kwenye WhatsApp. Subiri bot i-connect...';
-    var pairButton = document.getElementById('pairBotButton');
-    if (pairButton) pairButton.innerHTML = '<i class="fas fa-hourglass-half"></i> Inasubiri connection...';
     var pc = document.getElementById('pairingCode');
     if (pc) pc.innerText = code;
     setStatus('Pairing code imetengenezwa. Link ndani ya sekunde 60.', 'success');
@@ -1260,10 +1306,6 @@ if (socket) {
   socket.on('pair-error', function(msg) {
     var btn = document.getElementById('requestPairing');
     if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-key"></i> Request Pairing Code'; }
-    var pairButton = document.getElementById('pairBotButton');
-    if (pairButton) { pairButton.disabled = false; pairButton.innerHTML = '<i class="fas fa-mobile-screen-button"></i> Pair bot mpya'; }
-    var linkPairStatus = document.getElementById('linkPairStatus');
-    if (linkPairStatus) linkPairStatus.textContent = msg || 'Pairing imeshindikana.';
     setStatus(msg || 'Imeshindikana.', 'error');
   });
 
@@ -1601,10 +1643,17 @@ if (refreshBtn) refreshBtn.addEventListener('click', function(){
 });
 var notificationsBtn = document.getElementById('notificationsBtn');
 if (notificationsBtn) notificationsBtn.addEventListener('click', function() {
-  var activity = document.getElementById('activity');
-  if (activity) activity.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  var dot = notificationsBtn.querySelector('.dot');
-  if (dot) dot.style.display = 'none';
+  var panel = document.getElementById('notificationPanel');
+  if (!panel) return;
+  panel.hidden = !panel.hidden;
+  notificationsBtn.setAttribute('aria-expanded', String(!panel.hidden));
+  if (!panel.hidden) loadNotifications();
+});
+var closeNotificationsButton = document.getElementById('closeNotifications');
+if (closeNotificationsButton) closeNotificationsButton.addEventListener('click', function() {
+  var panel = document.getElementById('notificationPanel');
+  if (panel) panel.hidden = true;
+  if (notificationsBtn) notificationsBtn.setAttribute('aria-expanded', 'false');
 });
 var themeToggle = document.getElementById('themeToggle');
 function applyTheme(theme) {

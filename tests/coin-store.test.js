@@ -66,3 +66,69 @@ test('admin balance changes are validated and recorded in wallet history', () =>
     fs.rmSync(file, { force: true });
   }
 });
+
+test('manual transfer requests credit coins only after one admin approval', () => {
+  const file = path.join(os.tmpdir(), `mickey-manual-coins-${Date.now()}-${Math.random()}.json`);
+  const previousFile = process.env.COIN_STORE_FILE;
+  process.env.COIN_STORE_FILE = file;
+
+  try {
+    const pending = coinStore.createManualTopUpRequest({
+      accountId: 'account_manual_test',
+      amount: 2500,
+      payerPhone: '255615000000',
+      reference: 'HALO12345'
+    });
+
+    assert.equal(pending.coins, 50);
+    assert.equal(pending.status, 'PENDING');
+    assert.equal(coinStore.getWallet('account_manual_test').balance, 0);
+    assert.throws(() => coinStore.createManualTopUpRequest({
+      accountId: 'account_other', amount: 2500, payerPhone: '255615000000', reference: 'HALO12345'
+    }), /already imetumika/);
+
+    const approved = coinStore.approveManualTopUp(pending.id, 'admin_test');
+    assert.equal(approved.status, 'SUCCESS');
+    assert.equal(coinStore.getWallet('account_manual_test').balance, 50);
+    assert.throws(() => coinStore.approveManualTopUp(pending.id, 'admin_test'), /tayari limefanyiwa/);
+  } finally {
+    if (previousFile === undefined) delete process.env.COIN_STORE_FILE;
+    else process.env.COIN_STORE_FILE = previousFile;
+    fs.rmSync(file, { force: true });
+  }
+});
+
+test('manual transfer requests validate amount, payer phone and receipt reference', () => {
+  const file = path.join(os.tmpdir(), `mickey-manual-invalid-${Date.now()}-${Math.random()}.json`);
+  const previousFile = process.env.COIN_STORE_FILE;
+  process.env.COIN_STORE_FILE = file;
+
+  try {
+    assert.throws(() => coinStore.createManualTopUpRequest({ accountId: 'a', amount: 120, payerPhone: '255615000000', reference: 'HALO12345' }), /kigawanyike/);
+    assert.throws(() => coinStore.createManualTopUpRequest({ accountId: 'a', amount: 250, payerPhone: '123', reference: 'HALO12345' }), /namba/);
+    assert.throws(() => coinStore.createManualTopUpRequest({ accountId: 'a', amount: 250, payerPhone: '255615000000', reference: 'no' }), /reference/);
+  } finally {
+    if (previousFile === undefined) delete process.env.COIN_STORE_FILE;
+    else process.env.COIN_STORE_FILE = previousFile;
+    fs.rmSync(file, { force: true });
+  }
+});
+
+test('failed bot deployment refunds the debit once', () => {
+  const file = path.join(os.tmpdir(), `mickey-deploy-refund-${Date.now()}-${Math.random()}.json`);
+  const previousFile = process.env.COIN_STORE_FILE;
+  process.env.COIN_STORE_FILE = file;
+
+  try {
+    coinStore.setWalletBalance({ accountId: 'account_refund_test', balance: 10, adminId: 'admin_test', note: 'Test setup' });
+    coinStore.debitForDeployment('account_refund_test', 'bot_failed');
+    assert.equal(coinStore.getWallet('account_refund_test').balance, 5);
+    assert.equal(coinStore.refundDeployment('account_refund_test', 'bot_failed').wallet.balance, 10);
+    assert.equal(coinStore.refundDeployment('account_refund_test', 'bot_failed'), null);
+    assert.equal(coinStore.listTransactions('account_refund_test').filter((item) => item.type === 'DEPLOYMENT_REFUND').length, 1);
+  } finally {
+    if (previousFile === undefined) delete process.env.COIN_STORE_FILE;
+    else process.env.COIN_STORE_FILE = previousFile;
+    fs.rmSync(file, { force: true });
+  }
+});

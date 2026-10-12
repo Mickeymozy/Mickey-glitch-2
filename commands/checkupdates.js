@@ -2,6 +2,7 @@ const updateCommand = require('./update');
 const isOwnerOrSudo = require('../lib/isOwner');
 const fs = require('fs/promises');
 const path = require('path');
+const { execFileSync } = require('child_process');
 
 // Auto-reminder config
 const REMINDER_FILE = path.join(__dirname, '../data/updateReminder.json');
@@ -139,58 +140,66 @@ async function checkForUpdates() {
         const repoName = 'Mickey-Glitch-2';
         
         // Get latest commit from GitHub
-        const response = await axios.get(`https://api.github.com/repos/${repoOwner}/${repoName}/commits`, {
+        const response = await axios.get(`https://api.github.com/repos/${repoOwner}/${repoName}/commits/main`, {
             headers: { 'User-Agent': 'MickeyBot' },
-            params: { per_page: 1 }
+            timeout: 15000
         });
-        
-        if (response.data && response.data.length > 0) {
-            const latestCommit = response.data[0];
-            const latestSha = latestCommit.sha;
-            
-            // Check current version (you can store this in a file)
-            let currentSha = null;
+
+        const latestSha = response.data?.sha;
+        if (!latestSha) throw new Error('GitHub haikurudisha commit SHA.');
+
+        let currentSha = null;
+        try {
+            const versionFile = path.join(__dirname, '../data/currentVersion.json');
+            const versionData = JSON.parse(await fs.readFile(versionFile, 'utf8'));
+            currentSha = typeof versionData.sha === 'string' ? versionData.sha : null;
+        } catch (_) {}
+
+        if (!currentSha) {
             try {
-                const versionFile = path.join(__dirname, '../data/currentVersion.json');
-                const versionData = await fs.readFile(versionFile, 'utf8');
-                currentSha = JSON.parse(versionData).sha;
-            } catch (e) {
-                // First time checking
-                currentSha = null;
-            }
-            
-            const isUpdateAvailable = currentSha && latestSha !== currentSha;
-            
-            // Get changed files
-            let changedFiles = [];
-            if (isUpdateAvailable && currentSha) {
-                const compareResponse = await axios.get(`https://api.github.com/repos/${repoOwner}/${repoName}/compare/${currentSha}...${latestSha}`, {
-                    headers: { 'User-Agent': 'MickeyBot' }
-                });
-                changedFiles = compareResponse.data.files.map(f => f.filename);
-            }
-            
-            return {
-                available: isUpdateAvailable,
-                mode: 'git',
-                files: changedFiles.join('\n'),
-                version: latestSha,
-                currentVersion: currentSha
-            };
+                currentSha = execFileSync('git', ['rev-parse', 'HEAD'], {
+                    cwd: path.join(__dirname, '..'),
+                    stdio: ['ignore', 'pipe', 'ignore'],
+                    timeout: 3000
+                }).toString().trim() || null;
+            } catch (_) {}
         }
-        
-        return { available: false, mode: 'none' };
+
+        const isUpdateAvailable = !currentSha || latestSha !== currentSha;
+        let changedFiles = [];
+        if (isUpdateAvailable && currentSha) {
+            const compareResponse = await axios.get(`https://api.github.com/repos/${repoOwner}/${repoName}/compare/${currentSha}...${latestSha}`, {
+                headers: { 'User-Agent': 'MickeyBot' },
+                timeout: 15000
+            });
+            changedFiles = (compareResponse.data.files || []).map((file) => file.filename);
+        }
+
+        return {
+            available: isUpdateAvailable,
+            mode: 'git',
+            files: changedFiles.join('\n'),
+            version: latestSha,
+            currentVersion: currentSha
+        };
         
     } catch (err) {
         console.error('Update check error:', err);
         
-        // Option 2: Fallback to manual check
         return {
             available: false,
             mode: 'none',
             error: err.message
         };
     }
+}
+
+function parseCommandArgs(args) {
+    if (Array.isArray(args)) return args.map((item) => String(item));
+    const parts = String(args || '').trim().split(/\s+/).filter(Boolean);
+    const command = parts[0] ? parts[0].replace(/^[^a-z0-9]+/i, '').toLowerCase() : '';
+    if (command === 'checkupdates') parts.shift();
+    return parts;
 }
 
 // Function to save current version after update
@@ -214,7 +223,7 @@ async function checkUpdatesCommand(sock, chatId, message, args = []) {
     }
 
     const reminder = await loadReminder();
-    const cmd = (args[0] || '').toLowerCase();
+    const cmd = (parseCommandArgs(args)[0] || '').toLowerCase();
 
     // Check for update reminders if auto-enabled
     if (cmd === 'auto') {
@@ -238,7 +247,8 @@ async function checkUpdatesCommand(sock, chatId, message, args = []) {
     try {
         // Use our built-in check function instead of updateCommand.checkUpdates
         const res = await checkForUpdates();
-        const updateHash = res && res.files ? generateUpdateHash(res.files.split('\n'), res.mode) : null;
+        if (res.error) throw new Error(res.error);
+        const updateHash = res?.version || (res?.files ? generateUpdateHash(res.files.split('\n'), res.mode) : null);
 
         // Format and send update info
         const updateMsg = formatUpdateInfo(res);
@@ -275,3 +285,5 @@ async function checkUpdatesCommand(sock, chatId, message, args = []) {
 }
 
 module.exports = checkUpdatesCommand;
+module.exports.checkForUpdates = checkForUpdates;
+module.exports.parseCommandArgs = parseCommandArgs;
