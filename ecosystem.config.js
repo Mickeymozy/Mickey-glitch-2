@@ -31,12 +31,7 @@ module.exports = {
     exp_backoff_restart_delay: 1000,
     env_file: './.env',
     env: {
-      NODE_ENV: 'production',
-      VPS_AUTO_UPDATE_ENABLED: process.env.VPS_AUTO_UPDATE_ENABLED || 'true',
-      VPS_AUTO_UPDATE_REPOSITORY: process.env.VPS_AUTO_UPDATE_REPOSITORY || 'https://github.com/Mickeymozy/Mickey-glitch-2.git',
-      VPS_AUTO_UPDATE_BRANCH: process.env.VPS_AUTO_UPDATE_BRANCH || 'main',
-      VPS_AUTO_UPDATE_INTERVAL_MS: process.env.VPS_AUTO_UPDATE_INTERVAL_MS || '300000',
-      VPS_AUTO_UPDATE_START_DELAY_MS: process.env.VPS_AUTO_UPDATE_START_DELAY_MS || '60000'
+      NODE_ENV: 'production'
     }
   }]
 };

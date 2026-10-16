@@ -33,7 +33,12 @@ const ADMIN_ENV_DEFINITIONS = [
     { key: 'PORT', required: false, secret: false, restart: true, description: 'Port ya server.' },
     { key: 'HOST', required: false, secret: false, restart: true, description: 'Host interface ya server.' },
     { key: 'PUBLIC_HOST', required: false, secret: false, restart: false, description: 'Public hostname ya server.' },
-    { key: 'COIN_STORE_FILE', required: false, secret: false, restart: false, description: 'Path ya coin wallet storage.' }
+    { key: 'COIN_STORE_FILE', required: false, secret: false, restart: false, description: 'Path ya coin wallet storage.' },
+    { key: 'VPS_AUTO_UPDATE_ENABLED', required: false, secret: false, restart: true, description: 'Weka false kuzima auto update ya VPS.' },
+    { key: 'VPS_AUTO_UPDATE_REPOSITORY', required: false, secret: false, restart: true, description: 'HTTPS GitHub repository ya auto update.' },
+    { key: 'VPS_AUTO_UPDATE_BRANCH', required: false, secret: false, restart: true, description: 'Branch ya GitHub inayofuatiliwa na VPS.' },
+    { key: 'VPS_AUTO_UPDATE_INTERVAL_MS', required: false, secret: false, restart: true, description: 'Muda kati ya checks za GitHub, milliseconds.' },
+    { key: 'VPS_AUTO_UPDATE_START_DELAY_MS', required: false, secret: false, restart: true, description: 'Kuchelewesha check ya kwanza baada ya startup, milliseconds.' }
 ];
 let managedAdminEnv = {};
 try {

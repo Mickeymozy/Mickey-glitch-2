@@ -19,12 +19,12 @@ The checkout must be clean and able to fast-forward from the configured branch. 
 
 ## Configuration
 
-Set these variables in `.env` to customize the updater:
+Set these variables in `.env` or in Admin → Environment to customize the updater. Admin-managed settings are re-read while polling and take effect within 30 seconds; `.env` changes require `pm2 startOrReload ecosystem.config.js --update-env`:
 
 - `VPS_AUTO_UPDATE_ENABLED=false` disables it.
 - `VPS_AUTO_UPDATE_REPOSITORY=https://github.com/Mickeymozy/Mickey-glitch-2.git` changes the HTTPS repository URL.
 - `VPS_AUTO_UPDATE_BRANCH=main` changes the watched branch.
-- `VPS_AUTO_UPDATE_INTERVAL_MS=300000` changes the polling interval.
+- `VPS_AUTO_UPDATE_INTERVAL_MS=300000` changes the polling interval (minimum 30 seconds).
 - `VPS_AUTO_UPDATE_START_DELAY_MS=60000` changes the initial delay.
 
 After changing variables, run `pm2 startOrReload ecosystem.config.js --update-env`. Render, Vercel, and plain `npm start` deployments do not start this PM2-only updater.

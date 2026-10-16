@@ -8,6 +8,13 @@ const assert = require('node:assert/strict');
 
 const { createUpdater } = require('../scripts/vps-auto-update');
 const repoRoot = path.resolve(__dirname, '..');
+const enabledSettings = () => ({
+  enabled: true,
+  repository: 'https://github.com/Mickeymozy/Mickey-glitch-2.git',
+  branch: 'main',
+  intervalMs: 300000,
+  startDelayMs: 60000
+});
 
 function temporaryStateFile() {
   return path.join(os.tmpdir(), `mickey-auto-update-${Date.now()}-${Math.random()}.json`);
@@ -17,6 +24,7 @@ test('VPS updater leaves a working tree with tracked changes untouched', () => {
   const calls = [];
   const updater = createUpdater({
     stateFile: temporaryStateFile(),
+    settings: enabledSettings,
     logger: { warn() {}, info() {}, error() {} },
     runCommand(command, args) {
       calls.push([command, args]);
@@ -35,6 +43,7 @@ test('VPS updater fast-forwards, installs dependencies, then asks PM2 to restart
   const calls = [];
   const updater = createUpdater({
     stateFile,
+    settings: enabledSettings,
     logger: { warn() {}, info() {}, error() {} },
     runCommand(command, args) {
       calls.push([command, args]);
@@ -67,6 +76,7 @@ test('VPS updater retries dependency installation after a failed install', () =>
   const calls = [];
   const updater = createUpdater({
     stateFile,
+    settings: enabledSettings,
     logger: { warn() {}, info() {}, error() {} },
     runCommand(command, args) {
       calls.push([command, args]);
@@ -92,4 +102,19 @@ test('VPS updater retries dependency installation after a failed install', () =>
   } finally {
     fs.rmSync(stateFile, { force: true });
   }
+});
+
+test('VPS updater does not run Git commands when disabled', () => {
+  let commandCount = 0;
+  const updater = createUpdater({
+    stateFile: temporaryStateFile(),
+    settings: () => ({ ...enabledSettings(), enabled: false }),
+    runCommand() {
+      commandCount += 1;
+      throw new Error('Disabled updater must not call system commands.');
+    }
+  });
+
+  assert.equal(updater.runOnce().status, 'disabled');
+  assert.equal(commandCount, 0);
 });
