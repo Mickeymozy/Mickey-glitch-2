@@ -4,7 +4,7 @@ module.exports = {
   BOT_NAME: 'MICKEY GLITCH 2',
   VERSION: '3.0.0',
   MODE: 'public',
-  REPO_URL: 'https://github.com/Mickeydeveloper/Mickey-glitch-2',
+  REPO_URL: 'https://github.com/Mickeymozy/Mickey-glitch-2',
   FOOTER: 'MICKEY GLITCH 2',
   BANNER: '',
   is_ai_message: false,

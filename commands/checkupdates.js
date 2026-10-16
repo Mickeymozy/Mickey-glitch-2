@@ -136,8 +136,8 @@ async function checkForUpdates() {
     try {
         // Option 1: Check via GitHub API
         const axios = require('axios');
-        const repoOwner = 'Mickeydeveloper';
-        const repoName = 'Mickey-Glitch-2';
+        const repoOwner = 'Mickeymozy';
+        const repoName = 'Mickey-glitch-2';
         
         // Get latest commit from GitHub
         const response = await axios.get(`https://api.github.com/repos/${repoOwner}/${repoName}/commits/main`, {

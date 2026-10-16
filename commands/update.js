@@ -7,8 +7,8 @@ const AdmZip = require('adm-zip');
 const chalk = require('chalk');
 const isOwnerOrSudo = require('../lib/isOwner');
 
-const REPO_OWNER = 'Mickeydeveloper';
-const REPO_NAME = 'Mickey-Glitch-2';
+const REPO_OWNER = 'Mickeymozy';
+const REPO_NAME = 'Mickey-glitch-2';
 const REPO_URL = `https://github.com/${REPO_OWNER}/${REPO_NAME}`;
 
 /**
