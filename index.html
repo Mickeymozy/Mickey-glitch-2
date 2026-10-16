@@ -498,6 +498,23 @@
   .manual-payment-form input{width:100%;padding:10px 12px;border:1px solid var(--stroke);border-radius:8px;background:var(--bg-2);color:var(--text);font:inherit;}
   .manual-payment-form .alert{margin:0;}
   @media(max-width:700px){.manual-payment{grid-template-columns:1fr;gap:12px;padding:16px}.manual-payment-form{grid-template-columns:1fr}.manual-payment-form .field,.manual-payment-form button,.manual-payment-form .alert{grid-column:auto}.notification-panel{position:fixed;top:68px;right:12px;}}
+  .main{min-width:0;}
+  .topbar-actions{min-width:0;}
+  .guide-dialog{width:min(520px,calc(100% - 28px));max-width:none;padding:0;border:1px solid var(--stroke-hover);border-radius:12px;background:var(--bg-2);color:var(--text);box-shadow:0 28px 90px rgba(0,0,0,.6);}
+  .guide-dialog::backdrop{background:rgba(4,9,8,.76);backdrop-filter:blur(6px);}
+  .guide-content{padding:26px;}
+  .guide-top{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:22px;}
+  .guide-progress{height:4px;flex:1;overflow:hidden;border-radius:4px;background:var(--card-hover);}
+  .guide-progress span{display:block;width:25%;height:100%;background:var(--accent-2);transition:width .2s ease;}
+  .guide-count{color:var(--text-3);font-size:.72rem;font-variant-numeric:tabular-nums;white-space:nowrap;}
+  .guide-icon{width:44px;height:44px;display:grid;place-items:center;margin-bottom:18px;border:1px solid rgba(113,215,180,.24);border-radius:8px;background:rgba(113,215,180,.1);color:var(--accent);font-size:1.1rem;}
+  .guide-content h2{font:700 1.5rem 'Space Grotesk',sans-serif;margin-bottom:8px;}
+  .guide-content p{min-height:54px;color:var(--text-2);font-size:.9rem;line-height:1.65;}
+  .guide-actions{display:flex;align-items:center;gap:8px;margin-top:22px;}
+  .guide-actions .guide-skip{margin-right:auto;}
+  .guide-actions .btn{min-height:40px;padding:9px 14px;}
+  @media(max-width:768px){.topbar{gap:8px;padding:10px 12px}.topbar-actions{gap:6px}.topbar-actions .quick-deposit{width:40px;min-width:40px;padding:8px;font-size:0}.topbar-actions .quick-deposit i{font-size:.9rem}.topbar-actions .admin-badge{padding:7px 9px}.topbar-actions .icon-btn{width:38px;height:38px}.guide-content{padding:20px}.hero-cta .btn{flex:1 1 180px;}}
+  @media(max-width:390px){.topbar-actions{gap:4px}.topbar-actions .user-chip{padding-right:7px}.topbar-actions .admin-badge{font-size:0}.topbar-actions .admin-badge i{font-size:.85rem}.guide-actions{flex-wrap:wrap}.guide-actions .guide-skip{width:100%;justify-content:center;}}
   </style>
 </head>
 <body class="auth-checking">
@@ -552,7 +569,7 @@
     </div>
     <div class="topbar-actions">
       <div class="coin-header" aria-live="polite"><i class="fas fa-coins"></i><span id="headerCoinBalance">0</span> coins</div>
-      <button class="btn btn-primary btn-sm quick-deposit" id="headerDepositButton" type="button"><i class="fas fa-plus"></i> Deposit</button>
+      <button class="btn btn-primary btn-sm quick-deposit" id="headerDepositButton" type="button" title="Ongeza coins kwa hiari"><i class="fas fa-plus"></i> Coins</button>
       <div class="notification-wrap">
         <button class="icon-btn" id="notificationsBtn" type="button" title="Notifications" aria-label="Notifications" aria-expanded="false" aria-controls="notificationPanel"><i class="fas fa-bell"></i><span class="dot"></span></button>
         <section class="notification-panel" id="notificationPanel" aria-label="Notifications" hidden>
@@ -561,6 +578,7 @@
         </section>
       </div>
       <button class="icon-btn theme-toggle" id="themeToggle" type="button" title="Badili theme" aria-label="Badili theme" aria-pressed="false"><i class="fas fa-sun"></i></button>
+      <button class="icon-btn" id="helpGuideButton" type="button" title="Fungua tutorial" aria-label="Fungua tutorial"><i class="fas fa-circle-question"></i></button>
       <button class="icon-btn" title="Refresh" id="refreshBtn"><i class="fas fa-sync-alt"></i></button>
       <div class="user-chip">
         <div class="avatar" id="userAvatar">OP</div>
@@ -575,7 +593,7 @@
   <section class="hero tab-panel active" id="dashboard" data-panel="dashboard">
     <div class="hero-badge"><span class="live"></span> All Systems Operational</div>
     <h1>Control your <span class="grad">WhatsApp bots</span><br>from one place.</h1>
-    <p class="lead">A premium automation platform for managing, monitoring and scaling WhatsApp bots with real-time analytics and enterprise-grade reliability.</p>
+    <p class="lead">Dhibiti, unganisha na fuatilia WhatsApp bots zako sehemu moja. Kuunganisha bot hakuhitaji malipo.</p>
     <div class="hero-cta">
       <a href="#connect" data-tab="connect" class="btn btn-primary"><i class="fas fa-bolt"></i> Connect a Bot</a>
       <a href="#bots" data-tab="bots" class="btn btn-ghost"><i class="fas fa-eye"></i> View Bots</a>
@@ -587,7 +605,7 @@
     </div>
     <div class="account-overview" aria-live="polite">
       <div class="quota" id="accountQuota">0/2</div>
-      <div><strong id="accountPlanName">Customer workspace</strong><small id="accountPlanHint">Deploy hadi WhatsApp bots mbili kwenye account hii.</small></div>
+      <div><strong id="accountPlanName">Customer workspace</strong><small id="accountPlanHint">Unganisha hadi bots mbili bila malipo ya deployment.</small></div>
       <div class="quota-bar" aria-hidden="true"><div class="quota-fill" id="accountQuotaFill"></div></div>
     </div>
     <div class="account-overview" aria-live="polite" style="border-color:rgba(0,217,255,.2);">
@@ -656,27 +674,27 @@
   </section>
 
   <section class="section tab-panel" id="wallet" data-panel="wallet">
-    <div class="section-head"><div class="section-title"><h2>Coin Wallet</h2><p>Balance, deposits, matumizi na deployment costs kwa wakati halisi.</p></div><span class="sync-badge" id="walletSyncStatus">Live sync active</span></div>
+    <div class="section-head"><div class="section-title"><h2>Coin Wallet · Hiari</h2><p>Coins hazihitajiki kuunganisha au kutumia bot zako.</p></div><span class="sync-badge" id="walletSyncStatus">Live sync active</span></div>
     <div class="view-grid">
-      <div class="surface"><div class="wallet-label">Available balance</div><div class="wallet-balance" id="walletViewBalance">0</div><p id="walletViewMeta">Coins 5 kwa bot deployment</p><div class="utility-list"><button class="btn btn-primary" id="walletDepositButton" type="button"><i class="fas fa-plus"></i> Ongeza coins</button><button class="btn btn-ghost coin-utility" data-utility="packs" type="button"><i class="fas fa-store"></i> Angalia coin packs</button></div></div>
-      <div class="surface"><h3>Wallet health</h3><p>Ufuatiliaji wa matumizi ya coin kwa workspace hii.</p><div class="bot-metrics" style="margin-top:18px;"><div class="metric"><div class="v" id="walletDeployableBots">0</div><div class="l">Deployable</div></div><div class="metric"><div class="v" id="walletTransactionCount">0</div><div class="l">Transactions</div></div><div class="metric"><div class="v" id="walletSpendRate">0</div><div class="l">Spent</div></div></div></div>
+      <div class="surface"><div class="wallet-label">Available balance</div><div class="wallet-balance" id="walletViewBalance">0</div><p id="walletViewMeta">Coins ni za hiari; deployment ni bure.</p><div class="utility-list"><button class="btn btn-primary" id="walletDepositButton" type="button"><i class="fas fa-plus"></i> Ongeza coins kwa hiari</button><button class="btn btn-ghost coin-utility" data-utility="packs" type="button"><i class="fas fa-store"></i> Angalia coin packs</button></div></div>
+      <div class="surface"><h3>Wallet health</h3><p>Historia ya coins za hiari kwenye workspace hii.</p><div class="bot-metrics" style="margin-top:18px;"><div class="metric"><div class="v" id="walletDeployableBots">0</div><div class="l">Coin units</div></div><div class="metric"><div class="v" id="walletTransactionCount">0</div><div class="l">Transactions</div></div><div class="metric"><div class="v" id="walletSpendRate">0</div><div class="l">Spent</div></div></div></div>
     </div>
     <div class="manual-payment surface">
-      <div><div class="eyebrow">Manual Halotel payment</div><h3>Lipa kwa simu</h3><p>Tuma malipo kwa namba <strong>255615944741</strong> · Halotel · <strong>MICKDADI HAMZA SALIM</strong>. Kila TZS 50 ni coin 1. Coins zitaongezwa baada ya admin kuthibitisha risiti.</p></div>
+      <div><div class="eyebrow">Optional coin top-up</div><h3>Ongeza coins kwa hiari</h3><p>Top-up haihitajiki kwa deployment. Ukitaka kuongeza coins, tuma malipo kwa namba <strong>255615944741</strong> · Halotel · <strong>MICKDADI HAMZA SALIM</strong>. Kila TZS 50 ni coin 1; admin atathibitisha risiti.</p></div>
       <form id="manualPaymentForm" class="manual-payment-form">
         <div class="field"><label for="manualPayerPhone">Namba uliyolipia</label><input id="manualPayerPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="2556..." required></div>
         <div class="field"><label for="manualPaymentAmount">Kiasi (TZS, hatua za 50)</label><input id="manualPaymentAmount" type="number" min="50" step="50" placeholder="500" required><small id="manualCoinPreview">0 coins</small></div>
         <div class="field"><label for="manualPaymentReference">Uthibitisho / transaction ID</label><input id="manualPaymentReference" maxlength="80" placeholder="Reference ya SMS ya malipo" required></div>
-        <button class="btn btn-primary" id="submitManualPayment" type="submit"><i class="fas fa-receipt"></i> Tuma ombi la activation</button>
+        <button class="btn btn-primary" id="submitManualPayment" type="submit"><i class="fas fa-receipt"></i> Tuma ombi la coins</button>
         <p class="alert" id="manualPaymentStatus" role="status" aria-live="polite"></p>
       </form>
     </div>
-    <div class="history-card"><div class="history-toolbar"><div class="section-title"><h3>Full transaction history</h3><p>Inasasishwa baada ya payment au bot deployment.</p></div></div><table class="history-table"><thead><tr><th>Tarehe</th><th>Muamala</th><th>Coins</th><th>Status</th></tr></thead><tbody id="walletTransactionHistory"><tr><td colspan="4">Inapakia...</td></tr></tbody></table></div>
+    <div class="history-card"><div class="history-toolbar"><div class="section-title"><h3>Full transaction history</h3><p>Historia ya coin top-ups na marekebisho ya wallet.</p></div></div><table class="history-table"><thead><tr><th>Tarehe</th><th>Muamala</th><th>Coins</th><th>Status</th></tr></thead><tbody id="walletTransactionHistory"><tr><td colspan="4">Inapakia...</td></tr></tbody></table></div>
   </section>
 
   <section class="section tab-panel" id="store" data-panel="store">
-    <div class="section-head"><div class="section-title"><h2>Marketplace</h2><p>Nunua coin packs kwa PalmPesa na uendelee ku-deploy bila kusubiri.</p></div></div>
-    <div class="pack-grid"><button class="pack-card buy-pack" data-coins="10" type="button"><strong>Starter Pack</strong><span>Coins 10 · bots 2</span><b>TZS 500 <i class="fas fa-arrow-right"></i></b></button><button class="pack-card buy-pack" data-coins="50" type="button"><strong>Pro Pack</strong><span>Coins 50 · bots 10</span><b>TZS 2,500 <i class="fas fa-arrow-right"></i></b></button><button class="pack-card buy-pack" data-coins="100" type="button"><strong>Enterprise</strong><span>Coins 100 · bots 20</span><b>TZS 5,000 <i class="fas fa-arrow-right"></i></b></button></div>
+    <div class="section-head"><div class="section-title"><h2>Marketplace</h2><p>Coin packs ni za hiari; hazifungui wala hazihitajiki kwa bot deployment.</p></div></div>
+    <div class="pack-grid"><button class="pack-card buy-pack" data-coins="10" type="button"><strong>Starter Pack</strong><span>Coins 10 · za hiari</span><b>TZS 500 <i class="fas fa-arrow-right"></i></b></button><button class="pack-card buy-pack" data-coins="50" type="button"><strong>Pro Pack</strong><span>Coins 50 · za hiari</span><b>TZS 2,500 <i class="fas fa-arrow-right"></i></b></button><button class="pack-card buy-pack" data-coins="100" type="button"><strong>Enterprise</strong><span>Coins 100 · za hiari</span><b>TZS 5,000 <i class="fas fa-arrow-right"></i></b></button></div>
   </section>
 
   <section class="section tab-panel" id="tools" data-panel="tools">
@@ -715,8 +733,8 @@
   <section class="section tab-panel" id="bots" data-panel="bots">
     <div class="section-head">
       <div class="section-title">
-        <h2>Your Bots</h2>
-        <p>Manage, monitor and control your connected bots</p>
+        <h2>Bots Zako</h2>
+        <p>Fuatilia hali na simamia WhatsApp bots zilizounganishwa.</p>
       </div>
       <div style="display:flex;gap:10px;">
         <button class="btn btn-ghost btn-sm" id="refreshBotsBtn"><i class="fas fa-sync-alt"></i> Refresh</button>
@@ -730,7 +748,7 @@
     </div>
     <div class="bots-grid" id="botDashboard"></div>
     <div class="history-card">
-      <div class="history-toolbar"><div class="section-title"><h2>Transaction History</h2><p>PalmPesa purchases na auto-deduct ya deployment</p></div><div class="history-filter" role="group" aria-label="Transaction filters"><button class="active" data-transaction-filter="ALL" type="button">Zote</button><button data-transaction-filter="COIN_PURCHASE" type="button">Deposit</button><button data-transaction-filter="BOT_DEPLOYMENT" type="button">Bot rewards</button><button data-transaction-filter="FAILED" type="button">Failed</button></div></div>
+      <div class="history-toolbar"><div class="section-title"><h2>Transaction History</h2><p>Coin purchases na marekebisho ya wallet; deployment ni bure.</p></div><div class="history-filter" role="group" aria-label="Transaction filters"><button class="active" data-transaction-filter="ALL" type="button">Zote</button><button data-transaction-filter="COIN_PURCHASE" type="button">Deposit</button><button data-transaction-filter="BOT_DEPLOYMENT" type="button">Historia ya zamani</button><button data-transaction-filter="FAILED" type="button">Failed</button></div></div>
       <table class="history-table"><thead><tr><th>Tarehe</th><th>Muamala</th><th>Order ID</th><th>Status</th></tr></thead><tbody id="transactionHistory"><tr><td colspan="4">Inapakia...</td></tr></tbody></table>
     </div>
   </section>
@@ -814,17 +832,17 @@
       <div class="connect-card">
         <h3><i class="fas fa-list-check"></i> How it works</h3>
         <div class="steps">
-          <div class="step"><div class="step-num">1</div><div class="step-txt">Enter your WhatsApp number with country code. You can use +, spaces, or dashes.</div></div>
-          <div class="step"><div class="step-num">2</div><div class="step-txt">Click <strong>Request Pairing Code</strong> to generate a secure code.</div></div>
-          <div class="step"><div class="step-num">3</div><div class="step-txt">Open WhatsApp → Settings → Linked Devices → Link a Device.</div></div>
-          <div class="step"><div class="step-num">4</div><div class="step-txt">Paste the 8-digit code when prompted. Done!</div></div>
+          <div class="step"><div class="step-num">1</div><div class="step-txt">Weka namba ya WhatsApp pamoja na country code, mfano +255712345678.</div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-txt">Bonyeza <strong>Omba Pairing Code</strong>. Hakuna malipo ya kuunganisha bot.</div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-txt">Fungua WhatsApp → Settings → Linked Devices → Link a Device.</div></div>
+          <div class="step"><div class="step-num">4</div><div class="step-txt">Weka pairing code inayoonekana hapa chini kabla haija-expire.</div></div>
         </div>
         <div class="field" style="margin:0;">
           <label>WhatsApp Number</label>
           <input type="tel" id="phone" placeholder="e.g. +447911123456" inputmode="tel">
         </div>
         <button class="btn btn-primary" id="requestPairing" style="margin-top:16px;width:100%;">
-          <i class="fas fa-key"></i> Deploy Bot (Inakatisha Coin 5)
+          <i class="fas fa-key"></i> Omba Pairing Code · Bure
         </button>
       </div>
 
@@ -867,6 +885,16 @@
     <div class="alert" id="paymentAlert"></div>
   </div>
 </div>
+
+<dialog class="guide-dialog" id="onboardingDialog" aria-labelledby="guideTitle" aria-describedby="guideDescription">
+  <div class="guide-content">
+    <div class="guide-top"><div class="guide-progress" aria-hidden="true"><span id="guideProgress"></span></div><span class="guide-count" id="guideCount">1 / 4</span><button class="icon-btn" id="closeGuideButton" type="button" title="Funga tutorial" aria-label="Funga tutorial"><i class="fas fa-xmark"></i></button></div>
+    <div class="guide-icon" id="guideIcon"><i class="fas fa-gauge-high"></i></div>
+    <h2 id="guideTitle">Karibu Mickey Glitch</h2>
+    <p id="guideDescription"></p>
+    <div class="guide-actions"><button class="btn btn-ghost btn-sm guide-skip" id="skipGuideButton" type="button">Ruka tutorial</button><button class="btn btn-ghost btn-sm" id="previousGuideButton" type="button">Rudi</button><button class="btn btn-primary btn-sm" id="nextGuideButton" type="button">Endelea</button></div>
+  </div>
+</dialog>
 
 <div id="toast">Copied!</div>
 
@@ -1014,11 +1042,11 @@ function applyUserToUI(user) {
   loadNotifications();
 
   document.body.classList.add('authenticated');
+  showFirstUseGuide(user);
 }
 
 function updateWalletUI(user) {
   var balance = Number(user && user.coinBalance || 0);
-  var deployable = Number(user && user.deployableBots || Math.floor(balance / 5));
   var balanceEl = document.getElementById('coinBalance');
   var deployableEl = document.getElementById('deployableBots');
   if (balanceEl) {
@@ -1033,15 +1061,15 @@ function updateWalletUI(user) {
     balanceEl.dataset.value = String(balance);
     requestAnimationFrame(tick);
   }
-  if (deployableEl) deployableEl.textContent = 'Inaweza ku-deploy bots ' + deployable + ' · Coins 5 kwa bot';
+  if (deployableEl) deployableEl.textContent = 'Coins ni za hiari; deployment ni bure.';
   ['headerCoinBalance', 'walletViewBalance'].forEach(function(id) {
     var el = document.getElementById(id);
     if (el) el.textContent = balance;
   });
   var deployableView = document.getElementById('walletDeployableBots');
-  if (deployableView) deployableView.textContent = deployable;
+  if (deployableView) deployableView.textContent = balance;
   var walletMeta = document.getElementById('walletViewMeta');
-  if (walletMeta) walletMeta.textContent = 'Inaweza ku-deploy bots ' + deployable + ' · Coins 5 kwa bot';
+  if (walletMeta) walletMeta.textContent = 'Coins ni za hiari; deployment ni bure.';
 }
 
 function renderTransactionHistory(items) {
@@ -1297,7 +1325,7 @@ if (socket) {
 
   socket.on('pairing-code', function(code) {
     var btn = document.getElementById('requestPairing');
-    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-key"></i> Request Pairing Code'; }
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-key"></i> Omba Pairing Code · Bure'; }
     var pc = document.getElementById('pairingCode');
     if (pc) pc.innerText = code;
     setStatus('Pairing code imetengenezwa. Link ndani ya sekunde 60.', 'success');
@@ -1305,7 +1333,7 @@ if (socket) {
 
   socket.on('pair-error', function(msg) {
     var btn = document.getElementById('requestPairing');
-    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-key"></i> Request Pairing Code'; }
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-key"></i> Omba Pairing Code · Bure'; }
     setStatus(msg || 'Imeshindikana.', 'error');
   });
 
@@ -1611,6 +1639,94 @@ function activateTab(tabName) {
   if (sidebar && window.innerWidth < 1024) sidebar.classList.remove('open');
   try { history.replaceState(null, '', '#' + tabName); } catch (_) {}
 }
+
+var guideSteps = [
+  {
+    title: 'Karibu Mickey Glitch',
+    description: 'Hii ndiyo dashboard yako. Hapa unaona idadi ya bots, hali ya connection na shughuli za hivi karibuni. Kuunganisha bot ni bure.',
+    icon: 'fa-gauge-high',
+    tab: 'dashboard'
+  },
+  {
+    title: 'Unganisha WhatsApp',
+    description: 'Kwenye Connect, andika namba ya WhatsApp yenye country code kisha bonyeza Omba Pairing Code. Hakuna coin wala malipo yanayohitajika.',
+    icon: 'fa-link',
+    tab: 'connect'
+  },
+  {
+    title: 'Unganisha kifaa',
+    description: 'Fungua WhatsApp > Settings > Linked Devices > Link a Device. Weka pairing code inayoonekana kwenye ukurasa wa Connect kabla muda wake haujaisha.',
+    icon: 'fa-mobile-screen-button',
+    tab: 'connect'
+  },
+  {
+    title: 'Simamia bots zako',
+    description: 'Kwenye Bots utaona status na shughuli. Tumia Settings kubadili tabia za bot; Messages kutuma ujumbe. Unaweza kurudia tutorial kwa kitufe cha Help.',
+    icon: 'fa-robot',
+    tab: 'bots'
+  }
+];
+var guideIndex = 0;
+var onboardingDialog = document.getElementById('onboardingDialog');
+
+function guideStorageKey(user) {
+  return 'mickey-guide-done-' + String(user && (user.id || user.email) || 'account');
+}
+
+function renderGuideStep() {
+  var step = guideSteps[guideIndex];
+  if (!step) return;
+  document.getElementById('guideTitle').textContent = step.title;
+  document.getElementById('guideDescription').textContent = step.description;
+  document.getElementById('guideIcon').innerHTML = '<i class="fas ' + step.icon + '"></i>';
+  document.getElementById('guideCount').textContent = (guideIndex + 1) + ' / ' + guideSteps.length;
+  document.getElementById('guideProgress').style.width = ((guideIndex + 1) / guideSteps.length * 100) + '%';
+  document.getElementById('previousGuideButton').disabled = guideIndex === 0;
+  document.getElementById('nextGuideButton').textContent = guideIndex === guideSteps.length - 1 ? 'Maliza' : 'Endelea';
+}
+
+function openGuide() {
+  guideIndex = 0;
+  activateTab(guideSteps[guideIndex].tab);
+  renderGuideStep();
+  if (onboardingDialog && !onboardingDialog.open) onboardingDialog.showModal();
+}
+
+function showFirstUseGuide(user) {
+  if (onboardingDialog && onboardingDialog.open) return;
+  try {
+    if (!localStorage.getItem(guideStorageKey(user))) openGuide();
+  } catch (_) {
+    openGuide();
+  }
+}
+
+function finishGuide() {
+  try { localStorage.setItem(guideStorageKey(currentUser), '1'); } catch (_) {}
+  if (onboardingDialog && onboardingDialog.open) onboardingDialog.close();
+}
+
+document.getElementById('helpGuideButton').addEventListener('click', openGuide);
+document.getElementById('closeGuideButton').addEventListener('click', finishGuide);
+document.getElementById('skipGuideButton').addEventListener('click', finishGuide);
+document.getElementById('previousGuideButton').addEventListener('click', function() {
+  if (guideIndex === 0) return;
+  guideIndex -= 1;
+  activateTab(guideSteps[guideIndex].tab);
+  renderGuideStep();
+});
+document.getElementById('nextGuideButton').addEventListener('click', function() {
+  if (guideIndex === guideSteps.length - 1) {
+    finishGuide();
+    return;
+  }
+  guideIndex += 1;
+  activateTab(guideSteps[guideIndex].tab);
+  renderGuideStep();
+});
+if (onboardingDialog) onboardingDialog.addEventListener('cancel', function() {
+  try { localStorage.setItem(guideStorageKey(currentUser), '1'); } catch (_) {}
+});
 
 document.querySelectorAll('[data-tab]').forEach(function(a){
   a.addEventListener('click', function(event){

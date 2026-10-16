@@ -85,7 +85,7 @@
     .notification-composer input,.notification-composer select,.notification-composer textarea{width:100%;padding:10px 11px;border:1px solid rgba(162,173,164,.18);border-radius:5px;background:#121916;color:var(--text)}
     .payment-actions{display:flex;gap:6px;flex-wrap:wrap}
     .payment-actions .button{min-height:32px;padding:6px 8px;font-size:11px}
-    @media(max-width:760px){.tabs{grid-template-columns:repeat(4,minmax(0,1fr))}.ops-grid{grid-template-columns:1fr}.feature-controls{grid-template-columns:1fr 1fr}}
+    @media(max-width:760px){.tabs{display:flex;width:100%;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}.tab{flex:0 0 auto}.ops-grid{grid-template-columns:1fr}.feature-controls{grid-template-columns:1fr 1fr}}
     @media(max-width:420px){.feature-controls{grid-template-columns:1fr}}
   </style>
 </head>

@@ -103,8 +103,6 @@ const {
     approveManualTopUp,
     rejectManualTopUp,
     applyPaymentStatus,
-    debitForDeployment,
-    refundDeployment,
     setWalletBalance
 } = require('./lib/coinStore');
 
@@ -5283,18 +5281,6 @@ io.on(
 
                 const userId = `${socket.account.id}_bot_${Date.now()}`;
 
-                if (!socket.account.isAdmin) {
-                    const deployment = debitForDeployment(socket.account.id, userId);
-                    if (!deployment) {
-                        socket.emit('pair-error', `Salio halitoshi. Deploy bot moja inahitaji coins ${COINS_PER_BOT}.`);
-                        return;
-                    }
-                    socket.emit('wallet-updated', {
-                        wallet: deployment.wallet,
-                        transaction: deployment.transaction
-                    });
-                }
-
                 userSockets[userId] = socket.id;
 
                 socket.account.botIds = [
@@ -5336,13 +5322,9 @@ io.on(
                         await saveAccounts({ strict: true }).catch((error) => console.error('[Pairing] Account cleanup failed:', error.message));
                     }
                     try { fs.removeSync(path.join(AUTH_DIR, userId)); } catch (_) {}
-                    const refund = owner && !owner.isAdmin ? refundDeployment(deploymentAccountId, userId) : null;
-                    const message = refund
-                        ? `Bot haikufanikiwa ku-connect ndani ya dakika 2. Coins ${COINS_PER_BOT} zimerudishwa.`
-                        : 'Bot haikufanikiwa ku-connect ndani ya dakika 2. Jaribu ku-pair tena.';
+                    const message = 'Bot haikufanikiwa ku-connect ndani ya dakika 2. Jaribu ku-pair tena.';
                     createUserNotification(deploymentAccountId, { title: 'Bot haikuweza kuwaka', message, type: 'bot-deployment-failed' });
                     io.to(socket.id).emit('pair-error', message);
-                    if (refund) io.to(socket.id).emit('wallet-updated', { wallet: refund.wallet });
                     emitDashboardBotState();
                 }, 120000);
                 if (typeof deploymentTimer.unref === 'function') deploymentTimer.unref();
