@@ -87,6 +87,20 @@
     .payment-actions .button{min-height:32px;padding:6px 8px;font-size:11px}
     @media(max-width:760px){.tabs{display:flex;width:100%;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}.tab{flex:0 0 auto}.ops-grid{grid-template-columns:1fr}.feature-controls{grid-template-columns:1fr 1fr}}
     @media(max-width:420px){.feature-controls{grid-template-columns:1fr}}
+    .shell{max-width:1380px}
+    .top{gap:16px}
+    .hero{padding-block:36px 28px}
+    .hero h1{font-size:34px;letter-spacing:0}
+    .stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;border:0;margin-bottom:28px}
+    .stat,.stat:first-child,.stat:last-child{min-height:96px;padding:16px;border:1px solid rgba(162,173,164,.15);border-radius:6px;background:rgba(25,33,29,.82);box-shadow:none}
+    .stat:before{width:3px;height:100%}
+    .tabs{position:sticky;top:72px;z-index:4;margin-bottom:22px;backdrop-filter:blur(14px)}
+    .view{min-height:240px}
+    .env-intro{border-radius:6px}
+    .table-wrap{max-height:min(62vh,680px);overflow:auto}
+    th{z-index:1}
+    .button:focus-visible,.tab:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--mint);outline-offset:2px}
+    @media(max-width:760px){.stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.stat,.stat:first-child,.stat:last-child{min-height:84px}.tabs{top:62px}.table-wrap{max-height:58vh}}
   </style>
 </head>
 <body>

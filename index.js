@@ -95,7 +95,8 @@ const { OpenAI } = require('openai');
 const { isSudo } = require('./lib');
 const {
     isSessionRepairableError,
-    backupSignalState
+    backupSignalState,
+    cleanupOldSessionBackups
 } = require('./lib/sessionRecovery');
 const { createCtx } = require('./lib/messageBuilder');
 const {
@@ -758,6 +759,15 @@ if (!process.env.COIN_STORE_FILE) {
 let persistenceReady = false;
 
 fs.ensureDirSync(AUTH_DIR);
+cleanupOldSessionBackups(AUTH_DIR);
+const sessionBackupCleanupTimer = setInterval(() => {
+    try {
+        cleanupOldSessionBackups(AUTH_DIR);
+    } catch (error) {
+        console.error('Failed to remove expired session backups:', error.message);
+    }
+}, 24 * 60 * 60 * 1000);
+sessionBackupCleanupTimer.unref();
 fs.ensureDirSync(DATA_DIR);
 
 let botData = {
@@ -2088,7 +2098,7 @@ app.post('/api/bots/:botId/verify-recipient', requirePersistence, async (req, re
     }
 });
 
-app.post('/api/bots/:botId/messages', requirePersistence, async (req, res) => {
+app.post('/api/bots/:botId/test-command', requirePersistence, async (req, res) => {
     const account = getAccountFromRequest(req);
     if (!account) return res.status(401).json({ error: 'Login required.' });
 
@@ -2103,13 +2113,19 @@ app.post('/api/bots/:botId/messages', requirePersistence, async (req, res) => {
     }
 
     const text = String(req.body?.text || '').trim();
-    if (!text || text.length > 4000) {
-        return res.status(400).json({ error: 'Ujumbe uwe na herufi 1 hadi 4000.' });
+    if (!text || text.length > 300 || /[\r\n]/.test(text)) {
+        return res.status(400).json({ error: 'Command ya test iwe na herufi 1 hadi 300 na isiwe na mistari mingi.' });
     }
 
     const session = sessions[botId];
     if (!session?.isConnected || typeof session.sock?.sendMessage !== 'function') {
         return res.status(409).json({ error: 'Bot hii haiko online. Unganisha bot kisha jaribu tena.' });
+    }
+
+    const commandPrefix = String(session.commandPrefix || '.').slice(0, 3);
+    const commandBody = text.startsWith(commandPrefix) ? text.slice(commandPrefix.length).trim() : '';
+    if (!commandBody || !/^[a-z0-9_-]+(?:\s+[^\r\n]*)?$/i.test(commandBody)) {
+        return res.status(400).json({ error: `Tuma command halali inayoanza na ${commandPrefix}, kwa mfano ${commandPrefix}ping.` });
     }
 
     const now = Date.now();
@@ -2126,11 +2142,11 @@ app.post('/api/bots/:botId/messages', requirePersistence, async (req, res) => {
 
     try {
         await session.sock.sendMessage(`${phone}@s.whatsapp.net`, { text });
-        session.sendLog(`Dashboard message sent to ...${phone.slice(-4)}`, 'success');
-        return res.json({ success: true, recipient: phone });
+        session.sendLog(`Test command ${text} sent to ...${phone.slice(-4)}`, 'success');
+        return res.json({ success: true, recipient: phone, command: text });
     } catch (error) {
-        session.sendLog(`Dashboard message failed for ...${phone.slice(-4)}: ${error.message}`, 'error');
-        return res.status(502).json({ error: 'WhatsApp imeshindwa kutuma ujumbe. Hakikisha namba inapokea ujumbe.' });
+        session.sendLog(`Test command failed for ...${phone.slice(-4)}: ${error.message}`, 'error');
+        return res.status(502).json({ error: 'WhatsApp imeshindwa kutuma command. Hakikisha namba inapokea ujumbe.' });
     }
 });
 
@@ -3057,6 +3073,8 @@ class BotSession {
                     this.authPath,
                     now
                 );
+
+            cleanupOldSessionBackups(AUTH_DIR, now);
 
             if (backupPath) {
                 this.sendLog(
@@ -4759,6 +4777,8 @@ class BotSession {
                                         this.authPath,
                                         backupPath
                                     );
+
+                                    cleanupOldSessionBackups(AUTH_DIR);
 
                                     this.sendLog(
                                         `Corrupted session backed up to ${backupPath}`,

@@ -80,6 +80,20 @@
     @media(max-width:760px){body{display:block;padding:16px}.shell{grid-template-columns:1fr;max-width:520px;margin:44px auto 0}.pitch{min-height:0;padding:28px 26px 25px;border-right:0;border-bottom:1px solid rgba(186,205,190,.12)}.mark{width:40px;height:40px;margin-bottom:23px}.pitch h1{max-width:390px;margin:11px 0 12px;font-size:39px;line-height:1.04}.pitch p{max-width:440px;margin:0;font-size:.8rem}.perks{gap:7px;margin-top:19px}.perk{min-height:38px;padding:6px 7px;font-size:.68rem}.perk b{width:22px;height:22px;flex-basis:22px}.card{padding:27px 26px 25px}.tabs{margin-bottom:24px}.card h2{font-size:1.5rem}.hint{margin-top:18px}.foot{margin-top:16px}}
     @media(max-width:380px){body{padding:12px}.shell{margin-top:42px}.pitch{padding:23px 19px 20px}.pitch h1{font-size:34px}.perks{grid-template-columns:1fr 1fr}.perk{gap:7px;font-size:.64rem}.card{padding:23px 19px}.theme-toggle{top:10px;right:10px}}
     @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+    .shell{width:min(1080px,100%);grid-template-columns:1.04fr .96fr;border-radius:8px;border-color:rgba(186,205,190,.17);background:rgba(21,30,25,.96);box-shadow:0 30px 100px rgba(0,0,0,.36)}
+    .pitch{min-height:600px;padding:52px 48px;background-image:linear-gradient(145deg,rgba(113,215,180,.075),rgba(237,148,110,.025)),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),#17211b;background-size:auto,30px 30px,30px 30px,auto}
+    .pitch h1{font-size:52px;line-height:1.04;letter-spacing:0}
+    .card{padding:42px 40px;background:#121a15}
+    .card h2{letter-spacing:0}
+    .tabs{border-radius:5px;background:#18211b}
+    .tab{border-radius:3px}
+    .tab.active{background:var(--lime);color:#182016;box-shadow:none}
+    .btn{border-radius:5px;background:var(--lime);color:#182016;box-shadow:none;transition:transform .18s,background .18s}
+    .btn:hover{background:#e1f895;box-shadow:none}
+    .hint{border-radius:5px}
+    .theme-toggle{border-radius:5px}
+    @media(max-width:760px){.shell{max-width:540px}.pitch{min-height:0;padding:30px 28px}.pitch h1{font-size:39px}.card{padding:28px 26px}}
+    @media(max-width:380px){.pitch h1{font-size:34px}}
   </style>
 </head>
 <body>
