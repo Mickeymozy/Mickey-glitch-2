@@ -7,7 +7,6 @@ services:
       - .env
     environment:
       MICKEY_DATA_DIR: /app/data
-      COIN_STORE_FILE: /app/data/coin_wallets.json
       HOST: 0.0.0.0
       PORT: 3000
     ports:

@@ -393,23 +393,6 @@
       .finally(function () { setBusy(form, false); });
   });
 
-  byId('cryptoForm').addEventListener('submit', function (event) {
-    event.preventDefault();
-    var form = event.currentTarget;
-    var output = byId('cryptoOutput');
-    var coin = byId('cryptoCoin').value;
-    output.textContent = 'Inatafuta bei...';
-    setBusy(form, true);
-    fetchJson('https://api.coingecko.com/api/v3/simple/price?ids=' + encodeURIComponent(coin) + '&vs_currencies=usd,tzs')
-      .then(function (data) {
-        var price = data[coin];
-        if (!price) throw new Error('Bei haipatikani sasa.');
-        output.textContent = coin.toUpperCase() + ' · $' + Number(price.usd).toLocaleString() + ' · TZS ' + Number(price.tzs).toLocaleString();
-        logTool('Crypto price checked');
-      }).catch(function (error) { showError('cryptoOutput', error); })
-      .finally(function () { setBusy(form, false); });
-  });
-
   byId('captionForm').addEventListener('submit', function (event) {
     event.preventDefault();
     var topic = byId('captionTopic').value.trim();

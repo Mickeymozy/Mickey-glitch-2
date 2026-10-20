@@ -18,10 +18,6 @@ const ADMIN_ENV_DEFINITIONS = [
     { key: 'ENABLE_TELEGRAM', required: false, secret: false, restart: true, description: 'Weka true kuwezesha Telegram kwenye low-resource mode.' },
     { key: 'LOW_RESOURCE_MODE', required: false, secret: false, restart: true, description: 'Punguza matumizi ya resources.' },
     { key: 'MAX_MEDIA_MB', required: false, secret: false, restart: true, description: 'Kikomo cha media upload kwa MB.' },
-    { key: 'PALMPESA_API_TOKEN', required: false, secret: true, restart: true, description: 'PalmPesa API access token.' },
-    { key: 'PALMPESA_USER_ID', required: false, secret: false, restart: true, description: 'PalmPesa user ID.' },
-    { key: 'PALMPESA_VENDOR', required: false, secret: false, restart: true, description: 'PalmPesa vendor au till.' },
-    { key: 'PALMPESA_CALLBACK_URL', required: false, secret: false, restart: false, description: 'Webhook URL ya PalmPesa.' },
     { key: 'OPENAI_API_KEY', required: false, secret: true, restart: true, description: 'OpenAI API key.' },
     { key: 'NEWS_API_KEY', required: false, secret: true, restart: false, description: 'NewsAPI key ya latest headlines tool.' },
     { key: 'AI_BASE_URL', required: false, secret: false, restart: true, description: 'Base URL ya AI API.' },
@@ -33,7 +29,6 @@ const ADMIN_ENV_DEFINITIONS = [
     { key: 'PORT', required: false, secret: false, restart: true, description: 'Port ya server.' },
     { key: 'HOST', required: false, secret: false, restart: true, description: 'Host interface ya server.' },
     { key: 'PUBLIC_HOST', required: false, secret: false, restart: false, description: 'Public hostname ya server.' },
-    { key: 'COIN_STORE_FILE', required: false, secret: false, restart: false, description: 'Path ya coin wallet storage.' },
     { key: 'VPS_AUTO_UPDATE_ENABLED', required: false, secret: false, restart: true, description: 'Weka false kuzima auto update ya VPS.' },
     { key: 'VPS_AUTO_UPDATE_REPOSITORY', required: false, secret: false, restart: true, description: 'HTTPS GitHub repository ya auto update.' },
     { key: 'VPS_AUTO_UPDATE_BRANCH', required: false, secret: false, restart: true, description: 'Branch ya GitHub inayofuatiliwa na VPS.' },
@@ -99,19 +94,6 @@ const {
     cleanupOldSessionBackups
 } = require('./lib/sessionRecovery');
 const { createCtx } = require('./lib/messageBuilder');
-const {
-    COINS_PER_BOT,
-    TZS_PER_COIN,
-    getWallet,
-    listTransactions,
-    createPendingTopUp,
-    createManualTopUpRequest,
-    approveManualTopUp,
-    rejectManualTopUp,
-    applyPaymentStatus,
-    setWalletBalance
-} = require('./lib/coinStore');
-
 function isPlainConversationMessage(content) {
     return content &&
         typeof content === 'object' &&
@@ -753,9 +735,6 @@ const AUTH_DIR = path.join(RUNTIME_DIR, 'auth_info');
 const DATA_DIR = ADMIN_ENV_DIR;
 const DATA_FILE = path.join(DATA_DIR, 'bot_data.json');
 const ACCOUNTS_FILE = path.join(DATA_DIR, 'accounts.json');
-if (!process.env.COIN_STORE_FILE) {
-    process.env.COIN_STORE_FILE = path.join(DATA_DIR, 'coin_wallets.json');
-}
 let persistenceReady = false;
 
 fs.ensureDirSync(AUTH_DIR);
@@ -1092,7 +1071,6 @@ function getAccountBotLimit(account) {
 function accountResponse(account) {
     ensureAccountToken(account);
     ensurePairingAccessKey(account);
-    const wallet = getWallet(account.id);
     return {
         id: account.id,
         phone: account.phone,
@@ -1106,13 +1084,7 @@ function accountResponse(account) {
         suspendedUntil: account.suspendedUntil || null,
         botCount: getAccountSuccessfulBotCount(account.id),
         botIds: getAccountBotIds(account.id),
-        pairingAccessKey: account.pairingAccessKey,
-        coinBalance: wallet.balance,
-        deployableBots: wallet.deployableBots,
-        coinPricing: {
-            coinsPerBot: COINS_PER_BOT,
-            tzsPerCoin: TZS_PER_COIN
-        }
+        pairingAccessKey: account.pairingAccessKey
     };
 }
 
@@ -1352,8 +1324,7 @@ app.get('/api/admin/overview', requirePersistence, requireAdmin, (req, res) => {
         stats: {
             users: users.length,
             bots: bots.length,
-            onlineBots: bots.filter((bot) => bot.running).length,
-            coins: users.reduce((total, user) => total + user.coinBalance, 0)
+            onlineBots: bots.filter((bot) => bot.running).length
         }
     });
 });
@@ -1472,43 +1443,8 @@ app.get('/api/admin/operations', requirePersistence, requireAdmin, (req, res) =>
         features,
         auditLog: Array.isArray(botData.adminAuditLog) ? botData.adminAuditLog.slice(0, 60) : [],
         scheduledBroadcasts: Array.isArray(botData.scheduledBroadcasts) ? botData.scheduledBroadcasts : [],
-        pendingManualPayments: listTransactions().filter((item) => item.type === 'MANUAL_COIN_PURCHASE' && item.status === 'PENDING').map((item) => ({
-            ...item,
-            account: accounts[item.accountId] ? { name: accounts[item.accountId].name, email: accounts[item.accountId].email } : null
-        })),
         health: { status: 'ok', persistence: persistenceReady ? 'ready' : 'starting', uptime: Math.round(process.uptime()), onlineBots }
     });
-});
-
-app.post('/api/admin/manual-payments/:transactionId/approve', requirePersistence, requireAdmin, (req, res) => {
-    try {
-        const transaction = approveManualTopUp(req.params.transactionId, req.account.id);
-        const user = accounts[transaction.accountId];
-        createUserNotification(transaction.accountId, {
-            title: 'Malipo yamethibitishwa',
-            message: `Malipo yako ya TZS ${transaction.amount.toLocaleString()} yamethibitishwa. Coins ${transaction.coins} zimeongezwa kwenye wallet yako.`,
-            type: 'payment-approved'
-        });
-        recordAdminAudit(req, 'manual_payment_approved', { transactionId: transaction.id, accountId: transaction.accountId, coins: transaction.coins });
-        return res.json({ success: true, transaction, wallet: getWallet(transaction.accountId), user: user ? accountResponse(user) : null });
-    } catch (error) {
-        return res.status(400).json({ error: error.message });
-    }
-});
-
-app.post('/api/admin/manual-payments/:transactionId/reject', requirePersistence, requireAdmin, (req, res) => {
-    try {
-        const transaction = rejectManualTopUp(req.params.transactionId, req.account.id, req.body?.note);
-        createUserNotification(transaction.accountId, {
-            title: 'Ombi la malipo halikuidhinishwa',
-            message: transaction.adminNote || 'Admin hajaweza kuthibitisha malipo haya. Wasiliana na support kabla ya kutuma ombi jipya.',
-            type: 'payment-rejected'
-        });
-        recordAdminAudit(req, 'manual_payment_rejected', { transactionId: transaction.id, accountId: transaction.accountId });
-        return res.json({ success: true, transaction });
-    } catch (error) {
-        return res.status(400).json({ error: error.message });
-    }
 });
 
 app.post('/api/admin/notifications', requirePersistence, requireAdmin, (req, res) => {
@@ -1650,29 +1586,6 @@ app.delete('/api/admin/broadcast/:broadcastId', requirePersistence, requireAdmin
     return res.json({ success: true });
 });
 
-app.patch('/api/admin/users/:accountId/coins', requirePersistence, requireAdmin, async (req, res) => {
-    const accountId = String(req.params.accountId || '').trim();
-    const account = Object.prototype.hasOwnProperty.call(accounts, accountId) ? accounts[accountId] : null;
-    if (!account) return res.status(404).json({ error: 'User account haijapatikana.' });
-    const note = String(req.body?.note || '').trim();
-    if (!note || note.length > 240) {
-        return res.status(400).json({ error: 'Weka sababu ya mabadiliko (herufi 1 hadi 240).' });
-    }
-
-    try {
-        const wallet = setWalletBalance({
-            accountId,
-            balance: req.body?.balance,
-            adminId: req.account.id,
-            note
-        });
-        recordAdminAudit(req, 'wallet_adjusted', { accountId, balance: wallet.balance, note });
-        return res.json({ wallet, user: accountResponse(account) });
-    } catch (error) {
-        return res.status(400).json({ error: error.message });
-    }
-});
-
 app.get('/api/admin/env', requirePersistence, requireAdmin, (req, res) => {
     const variables = ADMIN_ENV_DEFINITIONS.map((definition) => {
         const value = definition.key === 'ADMIN_EMAIL'
@@ -1763,7 +1676,7 @@ app.put('/api/admin/env', requirePersistence, requireAdmin, async (req, res) => 
 });
 
 /* =========================================================
-   COINS / PALMPESA
+    ACCOUNT TOOLS
 ========================================================= */
 
 app.post('/api/tools/qr', requirePersistence, async (req, res) => {
@@ -1806,25 +1719,6 @@ app.get('/api/tools/news', requirePersistence, async (req, res) => {
     }
 });
 
-const PALMPESA_BASE_URL = 'https://palmpesa.drmlelwa.co.tz';
-const PALMPESA_API_TOKEN = String(process.env.PALMPESA_API_TOKEN || '').trim();
-const PALMPESA_USER_ID = String(process.env.PALMPESA_USER_ID || '').trim();
-const PALMPESA_VENDOR = String(process.env.PALMPESA_VENDOR || 'TILL61103867').trim();
-
-function paymentCallbackUrl(req) {
-    return process.env.PALMPESA_CALLBACK_URL || `${req.protocol}://${req.get('host')}/api/palmpesa-webhook`;
-}
-
-function paymentStatusFromPayload(payload) {
-    const item = Array.isArray(payload?.data) ? payload.data[0] : payload?.data;
-    return String(payload?.payment_status || item?.payment_status || payload?.status || '').toUpperCase();
-}
-
-function paymentReferenceFromPayload(payload) {
-    const item = Array.isArray(payload?.data) ? payload.data[0] : payload?.data;
-    return payload?.order_id || item?.order_id || payload?.transaction_id || payload?.reference || item?.reference || null;
-}
-
 function createUserNotification(accountId, { title, message, type = 'info' }) {
     botData.notificationsByAccount = botData.notificationsByAccount || {};
     const items = botData.notificationsByAccount[accountId] || [];
@@ -1844,31 +1738,6 @@ function createUserNotification(accountId, { title, message, type = 'info' }) {
     return notification;
 }
 
-app.post('/api/manual-payments', requirePersistence, (req, res) => {
-    const account = getAccountFromRequest(req);
-    if (!account) return res.status(401).json({ error: 'Login required.' });
-    const payerPhone = normalizeAccountPhone(req.body?.payerPhone);
-    if (!isValidInternationalPhone(payerPhone)) return res.status(400).json({ error: 'Weka namba sahihi ya simu uliyolipia.' });
-
-    try {
-        const transaction = createManualTopUpRequest({
-            accountId: account.id,
-            amount: req.body?.amount,
-            payerPhone,
-            reference: req.body?.reference
-        });
-        const admins = Object.values(accounts).filter((item) => item.isAdmin);
-        admins.forEach((admin) => createUserNotification(admin.id, {
-            title: 'Ombi jipya la malipo',
-            message: `${account.name || account.email || account.id} ametuma TZS ${transaction.amount.toLocaleString()} · ${transaction.coins} coins · ref ${transaction.reference}.`,
-            type: 'manual-payment'
-        }));
-        return res.status(201).json({ success: true, transaction, paymentDetails: { receiver: '255615944741', recipientName: 'MICKDADI HAMZA SALIM', network: 'Halotel' } });
-    } catch (error) {
-        return res.status(400).json({ error: error.message });
-    }
-});
-
 app.get('/api/notifications', requirePersistence, (req, res) => {
     const account = getAccountFromRequest(req);
     if (!account) return res.status(401).json({ error: 'Login required.' });
@@ -1884,100 +1753,6 @@ app.patch('/api/notifications/:notificationId/read', requirePersistence, (req, r
     saveBotData();
     return res.json({ success: true });
 });
-
-app.get('/api/wallet', requirePersistence, (req, res) => {
-    const account = getAccountFromRequest(req);
-    if (!account) return res.status(401).json({ error: 'Login required.' });
-    return res.json({ wallet: getWallet(account.id), transactions: listTransactions(account.id).slice(0, 20) });
-});
-
-app.get('/api/transactions', requirePersistence, (req, res) => {
-    const account = getAccountFromRequest(req);
-    if (!account) return res.status(401).json({ error: 'Login required.' });
-    return res.json({ transactions: listTransactions(account.id) });
-});
-
-app.post('/api/palmpesa/initiate', requirePersistence, async (req, res) => {
-    const account = getAccountFromRequest(req);
-    if (!account) return res.status(401).json({ error: 'Login required.' });
-    if (!PALMPESA_API_TOKEN || !PALMPESA_USER_ID) {
-        return res.status(503).json({ error: 'PalmPesa haijawekwa kwenye server environment.' });
-    }
-
-    const coins = Number(req.body?.coins);
-    const phone = normalizeAccountPhone(req.body?.phone);
-    const amount = coins * TZS_PER_COIN;
-    if (!Number.isInteger(coins) || coins < 10 || coins % 10 !== 0) {
-        return res.status(400).json({ error: 'Nunua coins kwa mafungu ya 10 (TZS 500) au zaidi.' });
-    }
-    if (!isValidInternationalPhone(phone)) {
-        return res.status(400).json({ error: 'Weka namba sahihi ya Tanzania, mfano 0693662424 au 255693662424.' });
-    }
-
-    const transactionId = `TXN-COIN-${Date.now()}-${crypto.randomBytes(4).toString('hex')}`;
-    createPendingTopUp({ accountId: account.id, coins, amount, phone, transactionId });
-
-    try {
-        const response = await axios.post(`${PALMPESA_BASE_URL}/api/palmpesa/initiate`, {
-            name: account.name || 'Mickey Glitch user',
-            email: account.email || 'support@palmpesa.co.tz',
-            phone,
-            amount,
-            transaction_id: transactionId,
-            address: 'Dar es Salaam',
-            postcode: '11111',
-            callback_url: paymentCallbackUrl(req)
-        }, {
-            headers: {
-                Authorization: `Bearer ${PALMPESA_API_TOKEN}`,
-                'Content-Type': 'application/json',
-                Accept: 'application/json'
-            },
-            timeout: 15000
-        });
-
-        const orderId = response.data?.order_id || response.data?.raw?.order_id;
-        if (!orderId) {
-            applyPaymentStatus(transactionId, 'FAILED', { providerResponse: response.data });
-            return res.status(502).json({ error: 'PalmPesa haikurudisha order_id.' });
-        }
-        applyPaymentStatus(transactionId, 'PENDING', { orderId, providerResponse: response.data });
-        return res.status(202).json({ message: 'Ombi la malipo limetumwa. Kamilisha PIN kwenye simu yako.', orderId, transactionId, coins, amount });
-    } catch (error) {
-        applyPaymentStatus(transactionId, 'FAILED', { error: error.response?.data || error.message });
-        return res.status(error.response?.status && error.response.status >= 400 ? 502 : 504).json({ error: 'PalmPesa haikupatikana kwa sasa. Jaribu tena baada ya muda.' });
-    }
-});
-
-app.post('/api/palmpesa-webhook', (req, res) => {
-    const reference = paymentReferenceFromPayload(req.body);
-    const status = paymentStatusFromPayload(req.body);
-    if (!reference) return res.status(400).json({ error: 'order_id/reference haipo.' });
-    const transaction = applyPaymentStatus(reference, status, { providerPayload: req.body });
-    if (!transaction) return res.status(404).json({ error: 'Muamala haujapatikana.' });
-    return res.status(200).json({ received: true, status: transaction.status });
-});
-
-app.post('/api/palmpesa/status', requirePersistence, async (req, res) => {
-    const account = getAccountFromRequest(req);
-    if (!account) return res.status(401).json({ error: 'Login required.' });
-    if (!PALMPESA_API_TOKEN) return res.status(503).json({ error: 'PalmPesa haijawekwa kwenye server environment.' });
-    const orderId = String(req.body?.orderId || '').trim();
-    const local = listTransactions(account.id).find((item) => item.orderId === orderId);
-    if (!orderId || !local) return res.status(404).json({ error: 'Order ID si sahihi.' });
-
-    try {
-        const response = await axios.post(`${PALMPESA_BASE_URL}/api/order-status`, { order_id: orderId }, {
-            headers: { Authorization: `Bearer ${PALMPESA_API_TOKEN}`, 'Content-Type': 'application/json', Accept: 'application/json' },
-            timeout: 15000
-        });
-        const updated = applyPaymentStatus(orderId, paymentStatusFromPayload(response.data), { providerPayload: response.data });
-        return res.json({ transaction: updated });
-    } catch (error) {
-        return res.status(502).json({ error: 'Imeshindikana kupata status kutoka PalmPesa.' });
-    }
-});
-
 
 const sessions = {};
 const userSockets = {};
@@ -5202,8 +4977,7 @@ io.on(
                     'isPublic',
                     'commandCooldown',
                     'claimFrequency',
-                    'riskTolerance',
-                    'targetCoinLimit'
+                    'riskTolerance'
                 ];
 
                 for (const key of allowedKeys) {
@@ -5217,8 +4991,6 @@ io.on(
                                         ? Math.max(5, Math.min(120, Number(incomingSettings[key] || 30)))
                                         : key === 'riskTolerance'
                                             ? Math.max(0, Math.min(100, Number(incomingSettings[key] || 0)))
-                                            : key === 'targetCoinLimit'
-                                                ? Math.max(10, Math.min(1000, Number(incomingSettings[key] || 100)))
                                     : Boolean(incomingSettings[key]);
                     }
                 }

@@ -53,7 +53,6 @@
     .primary-cell{font-size:13px}.secondary{font-size:11px}.mono{font-size:11px;color:#b9c8bd}
     .pill{padding:4px 8px;border-radius:4px;background:rgba(255,255,255,.025);font-weight:700}
     .pill.online{background:rgba(113,215,180,.08)}.pill.admin{background:rgba(241,189,104,.08)}
-    .edit-coins{min-height:32px;padding:6px 9px;color:var(--lime);font-size:11px}
     .env-intro{align-items:flex-start;padding:17px 18px;border:1px solid rgba(162,173,164,.15);border-radius:6px;background:rgba(25,33,29,.7)}
     .env-intro p{margin-bottom:0;font-size:12px}
     .env-grid{gap:1px;border-color:rgba(162,173,164,.15);background:rgba(162,173,164,.15);border-radius:6px;overflow:hidden}
@@ -160,6 +159,7 @@
     .hero h1{font-size:30px}
     .eyebrow{color:#117a68}
     .stats{gap:0;border:1px solid var(--line);border-radius:7px;background:#fff;overflow:hidden}
+    .stats:not(.ops-health){grid-template-columns:repeat(3,minmax(0,1fr))}
     .stat,.stat:first-child,.stat:last-child{min-height:90px;padding:15px 18px;border:0;border-right:1px solid var(--line);border-radius:0;background:#fff;box-shadow:none}
     .stat:last-child{border-right:0}.stat:before{width:3px;background:#117a68}.stat:nth-child(2):before{background:#e5a63b}.stat:nth-child(3):before{background:#54b7a0}.stat:nth-child(4):before{background:#cb6253}
     .stat span{color:var(--muted)}.stat strong{color:#17352e}
@@ -170,7 +170,6 @@
     th{background:#f1f6f3;color:#566960;border-color:var(--line)}
     td{border-color:#e8efeb;color:var(--text)}tbody tr:hover{background:#f5faf7}
     .pill{border-radius:4px}.pill.online{background:#e8f4eb;color:#176b52}.pill.admin{background:#fff2d9;color:#8e601c}
-    .edit-coins{color:#117a68}
     .env-intro,.env-item,.feature-control{border-color:var(--line);border-radius:6px;background:#fff}
     .env-grid{border-color:var(--line);border-radius:6px;background:var(--line)}
     .env-item:hover{background:#f7faf8}
@@ -204,7 +203,6 @@
       <div class="stat"><span>Users</span><strong id="statUsers">--</strong></div>
       <div class="stat"><span>Bots</span><strong id="statBots">--</strong></div>
       <div class="stat"><span>Online bots</span><strong id="statOnline">--</strong></div>
-      <div class="stat"><span>Coins in wallets</span><strong id="statCoins">--</strong></div>
     </section>
 
     <nav class="tabs" role="tablist" aria-label="Admin sections">
@@ -216,7 +214,7 @@
 
     <section class="view active" id="usersView" role="tabpanel" aria-labelledby="usersTab">
       <div class="toolbar"><label class="search"><i class="fas fa-search"></i><input id="userSearch" type="search" placeholder="Tafuta jina, email au simu" aria-label="Tafuta users"></label><span class="eyebrow" id="userCount"></span></div>
-      <div class="table-wrap"><table><thead><tr><th>User</th><th>Contact</th><th>Wallet</th><th>Bots</th><th>Last login</th><th>Role</th><th>Actions</th></tr></thead><tbody id="usersBody"><tr><td colspan="7" class="empty">Inapakia users...</td></tr></tbody></table></div>
+      <div class="table-wrap"><table><thead><tr><th>User</th><th>Contact</th><th>Bots</th><th>Last login</th><th>Role</th><th>Actions</th></tr></thead><tbody id="usersBody"><tr><td colspan="6" class="empty">Inapakia users...</td></tr></tbody></table></div>
     </section>
 
     <section class="view" id="botsView" role="tabpanel" aria-labelledby="botsTab" hidden>
@@ -251,8 +249,6 @@
           <div class="feature-controls" id="featureControls"><div class="notice">Inapakia features...</div></div>
         </section>
       </div>
-      <div class="section-head ops-audit-head"><div><div class="eyebrow">Pending coin activation</div><p>Hakiki namba, kiasi na reference kabla ya kuongeza coins.</p></div><span class="pill" id="pendingPaymentCount">0 pending</span></div>
-      <div class="table-wrap"><table><thead><tr><th>Mteja</th><th>Aliyolipa</th><th>Kiasi</th><th>Coins</th><th>Reference</th><th>Muda</th><th>Uamuzi</th></tr></thead><tbody id="manualPaymentsBody"><tr><td colspan="7" class="empty">Hakuna ombi linalosubiri.</td></tr></tbody></table></div>
       <section class="env-intro notification-composer">
         <div><div class="eyebrow">User notifications</div><p>Tuma taarifa inayohifadhiwa kwenye notification center ya mteja.</p></div>
         <div class="field"><label for="notificationAccount">Mpokeaji</label><select id="notificationAccount"><option value="all">Users wote</option></select></div>
@@ -268,14 +264,6 @@
     </section>
     <div class="status" id="pageStatus" role="status" aria-live="polite"></div>
   </main>
-
-  <dialog id="coinDialog" aria-labelledby="coinDialogTitle">
-    <form id="coinForm">
-      <div class="dialog-head"><h2 id="coinDialogTitle">Badilisha wallet</h2><button class="button" id="closeCoinDialog" type="button" aria-label="Funga"><i class="fas fa-xmark"></i></button></div>
-      <div class="dialog-body"><p class="secondary" id="coinUserName"></p><input id="coinAccountId" type="hidden"><div class="field"><label for="coinBalanceInput">Salio jipya la coins</label><input id="coinBalanceInput" type="number" min="0" step="1" required></div><div class="field"><label for="coinNote">Sababu ya mabadiliko</label><textarea id="coinNote" maxlength="240" required placeholder="Mfano: Marekebisho ya malipo yaliyothibitishwa"></textarea></div><div class="status" id="coinStatus" role="status"></div></div>
-      <div class="dialog-actions"><button class="button" id="cancelCoinDialog" type="button">Ghairi</button><button class="button primary" id="saveCoinButton" type="submit"><i class="fas fa-check"></i> Hifadhi coins</button></div>
-    </form>
-  </dialog>
 
   <dialog id="userControlDialog" aria-labelledby="userControlTitle">
     <form id="userControlForm">
@@ -327,12 +315,11 @@
       $('usersBody').innerHTML = users.length ? users.map((user) => `<tr>
         <td><span class="primary-cell">${escapeHtml(user.name || 'User')}</span><span class="secondary mono">${escapeHtml(user.id)}</span></td>
         <td>${escapeHtml(user.email || '—')}<span class="secondary">${escapeHtml(user.phone || 'No phone')}</span></td>
-        <td><strong>${Number(user.coinBalance || 0).toLocaleString()}</strong><span class="secondary">${Number(user.deployableBots || 0)} deployable</span></td>
         <td>${Number(user.botCount || 0)} / ${Number(user.botLimit ?? 2)}<span class="secondary">${Number(user.messageLimitPerMinute || 10)} messages/min</span></td>
         <td>${user.lastLoginAt ? escapeHtml(new Date(user.lastLoginAt).toLocaleString()) : '—'}</td>
         <td><span class="pill ${user.isAdmin ? 'admin' : ''}">${user.isAdmin ? 'Admin' : 'User'}</span>${user.suspendedUntil && Date.parse(user.suspendedUntil) > Date.now() ? '<span class="secondary">Suspended</span>' : ''}</td>
-        <td><button class="button edit-coins" type="button" data-id="${escapeHtml(user.id)}" title="Badilisha coins za ${escapeHtml(user.name || user.email || 'user')}" aria-label="Badilisha coins"><i class="fas fa-coins"></i> Coins</button><button class="button user-access" type="button" data-id="${escapeHtml(user.id)}" title="Badilisha limits au suspension"><i class="fas fa-user-gear"></i> Access</button><button class="button toggle-role" type="button" data-id="${escapeHtml(user.id)}" data-admin="${user.isAdmin}" ${user.id.startsWith('admin_') ? 'disabled' : ''} title="Badilisha role ya ${escapeHtml(user.name || user.email || 'user')}"><i class="fas fa-user-shield"></i> ${user.isAdmin ? 'Remove admin' : 'Make admin'}</button></td>
-      </tr>`).join('') : '<tr><td colspan="7" class="empty">Hakuna user aliyepatikana.</td></tr>';
+        <td><button class="button user-access" type="button" data-id="${escapeHtml(user.id)}" title="Badilisha limits au suspension"><i class="fas fa-user-gear"></i> Access</button><button class="button toggle-role" type="button" data-id="${escapeHtml(user.id)}" data-admin="${user.isAdmin}" ${user.id.startsWith('admin_') ? 'disabled' : ''} title="Badilisha role ya ${escapeHtml(user.name || user.email || 'user')}"><i class="fas fa-user-shield"></i> ${user.isAdmin ? 'Remove admin' : 'Make admin'}</button></td>
+      </tr>`).join('') : '<tr><td colspan="6" class="empty">Hakuna user aliyepatikana.</td></tr>';
     }
 
     function renderBots() {
@@ -353,7 +340,6 @@
       $('statUsers').textContent = Number(overview.stats.users || 0).toLocaleString();
       $('statBots').textContent = Number(overview.stats.bots || 0).toLocaleString();
       $('statOnline').textContent = Number(overview.stats.onlineBots || 0).toLocaleString();
-      $('statCoins').textContent = Number(overview.stats.coins || 0).toLocaleString();
     }
 
     function renderOperations() {
@@ -366,9 +352,6 @@
       const labels = { chatbot: 'Chatbot', autoStatus: 'Auto status', autorecording: 'Auto recording', autotyping: 'Auto typing', anticall: 'Anti-call', pmblocker: 'PM blocker' };
       $('featureControls').innerHTML = Object.entries(labels).map(([feature, label]) => `<label class="feature-control"><input type="checkbox" data-feature="${feature}" ${operations.features[feature] ? 'checked' : ''}><span>${label}</span></label>`).join('');
       $('auditBody').innerHTML = operations.auditLog.length ? operations.auditLog.map((entry) => `<tr><td>${escapeHtml(new Date(entry.at).toLocaleString())}</td><td>${escapeHtml(entry.actor)}</td><td>${escapeHtml(entry.action)}</td><td>${escapeHtml(JSON.stringify(entry.details || {}))}</td></tr>`).join('') : '<tr><td colspan="4" class="empty">Bado hakuna matendo yaliyorekodiwa.</td></tr>';
-      const pendingPayments = operations.pendingManualPayments || [];
-      $('pendingPaymentCount').textContent = `${pendingPayments.length} pending`;
-      $('manualPaymentsBody').innerHTML = pendingPayments.length ? pendingPayments.map((item) => `<tr><td>${escapeHtml(item.account?.name || item.account?.email || item.accountId)}</td><td>${escapeHtml(item.phone)}</td><td>TZS ${Number(item.amount || 0).toLocaleString()}</td><td>${Number(item.coins || 0).toLocaleString()}</td><td class="mono">${escapeHtml(item.reference)}</td><td>${escapeHtml(new Date(item.createdAt).toLocaleString())}</td><td><div class="payment-actions"><button class="button primary approve-manual-payment" type="button" data-id="${escapeHtml(item.id)}"><i class="fas fa-check"></i> Activate</button><button class="button danger reject-manual-payment" type="button" data-id="${escapeHtml(item.id)}"><i class="fas fa-xmark"></i> Kataa</button></div></td></tr>`).join('') : '<tr><td colspan="7" class="empty">Hakuna ombi linalosubiri.</td></tr>';
       $('scheduledBroadcastBody').innerHTML = operations.scheduledBroadcasts?.length ? operations.scheduledBroadcasts.map((entry) => `<tr><td>${escapeHtml(new Date(entry.scheduledAt).toLocaleString())}</td><td>${escapeHtml(entry.botId || 'Bots zote')}</td><td>${escapeHtml(entry.text.slice(0, 120))}</td><td><button class="button danger cancel-broadcast" type="button" data-id="${escapeHtml(entry.id)}" title="Futa tangazo lililopangwa"><i class="fas fa-xmark"></i> Cancel</button></td></tr>`).join('') : '<tr><td colspan="4" class="empty">Hakuna matangazo yaliyopangwa.</td></tr>';
       const selectedAccount = $('notificationAccount').value;
       $('notificationAccount').innerHTML = '<option value="all">Users wote</option>' + overview.users.filter((user) => !user.isAdmin).map((user) => `<option value="${escapeHtml(user.id)}">${escapeHtml(user.name || user.email || user.id)}</option>`).join('');
@@ -431,18 +414,6 @@
       }
     }
 
-    function openCoinDialog(accountId) {
-      const user = overview.users.find((entry) => entry.id === accountId);
-      if (!user) return;
-      $('coinAccountId').value = user.id;
-      $('coinUserName').textContent = `${user.name || user.email || user.id} · Salio sasa: ${Number(user.coinBalance || 0).toLocaleString()} coins`;
-      $('coinBalanceInput').value = Number(user.coinBalance || 0);
-      $('coinNote').value = '';
-      $('coinStatus').textContent = '';
-      $('coinDialog').showModal();
-      $('coinBalanceInput').focus();
-    }
-
     function openUserControlDialog(accountId) {
       const user = overview.users.find((entry) => entry.id === accountId);
       if (!user) return;
@@ -460,8 +431,6 @@
     $('userSearch').addEventListener('input', renderUsers);
     $('botSearch').addEventListener('input', renderBots);
     $('usersBody').addEventListener('click', (event) => {
-      const coinButton = event.target.closest('.edit-coins');
-      if (coinButton) return openCoinDialog(coinButton.dataset.id);
       const accessButton = event.target.closest('.user-access');
       if (accessButton) return openUserControlDialog(accessButton.dataset.id);
       const roleButton = event.target.closest('.toggle-role');
@@ -563,26 +532,6 @@
         button.disabled = false;
       }
     });
-    $('manualPaymentsBody').addEventListener('click', async (event) => {
-      const approveButton = event.target.closest('.approve-manual-payment');
-      const rejectButton = event.target.closest('.reject-manual-payment');
-      const button = approveButton || rejectButton;
-      if (!button) return;
-      const approve = Boolean(approveButton);
-      if (!window.confirm(approve ? 'Umehakiki malipo haya na kuongeza coins?' : 'Kataa ombi hili la malipo?')) return;
-      button.disabled = true;
-      try {
-        await api(`/api/admin/manual-payments/${encodeURIComponent(button.dataset.id)}/${approve ? 'approve' : 'reject'}`, {
-          method: 'POST',
-          body: JSON.stringify({ note: approve ? '' : 'Malipo hayakuweza kuthibitishwa.' })
-        });
-        await Promise.all([loadOperations(), loadOverview()]);
-        setStatus(approve ? 'Coins zimeongezwa na mteja amejulishwa.' : 'Ombi limekataliwa na mteja amejulishwa.', 'success');
-      } catch (error) {
-        setStatus(error.message, 'error');
-        button.disabled = false;
-      }
-    });
     $('sendNotificationButton').addEventListener('click', async () => {
       const button = $('sendNotificationButton');
       const status = $('notificationStatus');
@@ -604,29 +553,6 @@
         button.disabled = false;
       }
     });
-    $('closeCoinDialog').addEventListener('click', () => $('coinDialog').close());
-    $('cancelCoinDialog').addEventListener('click', () => $('coinDialog').close());
-
-    $('coinForm').addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const button = $('saveCoinButton');
-      button.disabled = true;
-      $('coinStatus').textContent = 'Inahifadhi...';
-      try {
-        await api(`/api/admin/users/${encodeURIComponent($('coinAccountId').value)}/coins`, {
-          method: 'PATCH',
-          body: JSON.stringify({ balance: Number($('coinBalanceInput').value), note: $('coinNote').value.trim() })
-        });
-        $('coinDialog').close();
-        await loadOverview();
-      } catch (error) {
-        $('coinStatus').textContent = error.message;
-        $('coinStatus').className = 'status error';
-      } finally {
-        button.disabled = false;
-      }
-    });
-
     $('envGrid').addEventListener('input', (event) => {
       if (event.target.matches('[data-env-key]')) event.target.dataset.dirty = 'true';
     });

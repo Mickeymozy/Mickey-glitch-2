@@ -140,11 +140,6 @@
   /* Theme toggle */
   .theme-toggle[aria-pressed="true"]{color:var(--gold);border-color:rgba(255,184,0,.45);}
 
-  /* Coin header */
-  .coin-header{display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid rgba(0,217,255,.25);border-radius:var(--radius-sm);background:rgba(0,217,255,.08);color:var(--accent-2);font:700 .78rem 'Space Grotesk',sans-serif;}
-  .coin-header i{font-size:.75rem;}
-  .quick-deposit{white-space:nowrap;}
-
   /* ============================================================
      HERO
      ============================================================ */
@@ -313,35 +308,6 @@
   .platform-status-item small{display:block;color:var(--text-3);font-size:.66rem;margin-top:2px;}
 
   /* ============================================================
-     WALLET / PACKS / HISTORY
-     ============================================================ */
-  .wallet-layout{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(280px,.75fr);gap:18px;margin-top:24px;}
-  .wallet-card,.pack-card,.history-card{border:1px solid var(--stroke);border-radius:var(--radius);background:var(--card);padding:22px;}
-  .wallet-card{display:flex;align-items:center;gap:18px;justify-content:space-between;flex-wrap:wrap;background:linear-gradient(145deg,rgba(124,92,255,.08),var(--card));}
-  .wallet-label{color:var(--text-3);font-size:.76rem;text-transform:uppercase;letter-spacing:.12em;font-weight:700;}
-  .wallet-balance{font:700 3rem/1 'Space Grotesk',sans-serif;color:var(--accent-2);letter-spacing:-.04em;}
-  .wallet-meta{color:var(--text-2);font-size:.82rem;margin-top:5px;}
-  .pack-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px;}
-  .pack-card{padding:16px;background:var(--card);border-color:var(--stroke);cursor:pointer;text-align:left;color:var(--text);font:inherit;transition:.2s;}
-  .pack-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 12px 30px rgba(124,92,255,.15);}
-  .pack-card strong{display:block;font-size:.9rem;}
-  .pack-card span{display:block;color:var(--text-2);font-size:.78rem;margin-top:4px;}
-  .pack-card b{display:block;color:var(--accent-2);font-size:1.05rem;margin-top:10px;}
-  .history-card{margin-top:18px;overflow:auto;}
-  .history-table{width:100%;border-collapse:collapse;font-size:.78rem;min-width:560px;}
-  .history-table th,.history-table td{text-align:left;padding:11px 8px;border-bottom:1px solid var(--stroke);}
-  .history-table th{color:var(--text-3);font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;}
-  .history-table td{color:var(--text-2);}
-  .history-toolbar{display:flex;align-items:end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:18px 0 12px;}
-  .history-filter{display:flex;gap:7px;flex-wrap:wrap;}
-  .history-filter button{border:1px solid var(--stroke);background:transparent;color:var(--text-2);border-radius:10px;padding:8px 11px;font:600 .72rem 'Outfit',sans-serif;cursor:pointer;transition:.2s;}
-  .history-filter button.active,.history-filter button:hover{background:rgba(124,92,255,.12);border-color:var(--accent);color:var(--text);}
-  .status-badge{display:inline-flex;padding:4px 8px;border-radius:8px;font-size:.65rem;font-weight:700;letter-spacing:.05em;}
-  .status-badge.success{background:rgba(16,217,122,.13);color:var(--success);}
-  .status-badge.pending{background:rgba(255,176,32,.14);color:var(--warning);}
-  .status-badge.failed{background:rgba(255,71,87,.14);color:var(--danger);}
-
-  /* ============================================================
      VIEW GRID / SURFACE / CHARTS
      ============================================================ */
   .view-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,.65fr);gap:18px;}
@@ -365,18 +331,6 @@
   /* Empty state */
   .empty-state{grid-column:1/-1;padding:42px 24px;text-align:center;border:1px dashed var(--stroke);border-radius:var(--radius);color:var(--text-3);background:var(--card);}
   .empty-state i{display:block;color:var(--accent-2);font-size:1.5rem;margin-bottom:10px;}
-
-  /* ============================================================
-     PAYMENT MODAL
-     ============================================================ */
-  .payment-modal{display:none;position:fixed;inset:0;z-index:500;background:rgba(3,8,12,.78);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:20px;}
-  .payment-modal.open{display:flex;}
-  .payment-panel{width:min(440px,100%);padding:28px;border:1px solid rgba(124,92,255,.25);border-radius:var(--radius-lg);background:var(--bg-2);box-shadow:0 28px 90px rgba(0,0,0,.55);}
-  body.light-mode .payment-panel{background:#fff;}
-  .payment-panel h2{font:700 1.4rem 'Space Grotesk',sans-serif;}
-  .payment-panel .payment-copy{color:var(--text-2);font-size:.84rem;margin:7px 0 22px;}
-  .payment-progress{display:none;margin-top:16px;color:var(--accent-2);font-size:.8rem;}
-  .payment-progress.show{display:flex;align-items:center;gap:8px;}
 
   /* ============================================================
      TAB PANELS
@@ -411,8 +365,6 @@
     .dashboard-strip{grid-template-columns:1fr 1fr;padding:0 24px 30px;}
     .dashboard-strip .pulse-card:first-child{grid-column:1/-1;}
     .view-grid{grid-template-columns:1fr;}
-    .wallet-layout{grid-template-columns:1fr;}
-    .coin-header{display:none;}
   }
   @media(max-width:768px){
     .topbar{padding:14px 18px;}
@@ -435,11 +387,9 @@
     .connect-card,.pair-result{padding:22px;}
     .auth-card{padding:26px 20px;}
     .platform-status{grid-template-columns:1fr;}
-    .wallet-balance{font-size:2.5rem;}
     .history-toolbar{align-items:stretch;}
   }
   @media(max-width:600px){
-    .pack-grid{grid-template-columns:1fr;}
     .settings-grid{grid-template-columns:1fr;}
     .message-form-grid{grid-template-columns:1fr;}
     .message-form-grid .field:last-child{grid-column:auto;}
@@ -466,7 +416,6 @@
   .btn-primary:hover{box-shadow:0 15px 40px rgba(113,215,180,.28);}
   .logo{box-shadow:0 8px 24px rgba(113,215,180,.22);}
   .nav-item.active{background:linear-gradient(135deg,rgba(113,215,180,.15),rgba(240,128,121,.07));border-color:rgba(113,215,180,.28);}
-  .coin-header{border-color:rgba(113,215,180,.25);background:rgba(113,215,180,.08);color:var(--accent);}
   .hero{background:linear-gradient(135deg,rgba(113,215,180,.07),transparent 45%);}
   .account-overview .quota,.stat-icon{background:rgba(113,215,180,.12);border-color:rgba(113,215,180,.2);color:var(--accent);}
   .stat-icon.lime{background:rgba(213,240,120,.1);border-color:rgba(213,240,120,.2);color:var(--accent-2);}
@@ -478,9 +427,7 @@
   #toast{box-shadow:0 15px 40px rgba(113,215,180,.24);}
   .mobile-nav a.active{background:rgba(113,215,180,.09);}
   .pulse-icon{background:rgba(113,215,180,.1);}
-  .wallet-card{background:linear-gradient(145deg,rgba(113,215,180,.08),var(--card));}
   .chart-bar{background:linear-gradient(180deg,var(--accent-2),rgba(213,240,120,.16));}
-  .payment-panel{border-color:rgba(113,215,180,.25);}
   .notification-wrap{position:relative;}
   .notification-panel{position:absolute;top:calc(100% + 12px);right:0;z-index:120;width:min(380px,calc(100vw - 24px));max-height:min(70vh,520px);overflow:auto;padding:14px;border:1px solid var(--stroke-hover);border-radius:10px;background:var(--bg-2);box-shadow:var(--shadow);}
   .notification-head{display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--stroke);}
@@ -490,14 +437,7 @@
   .notification-item.unread{border-left:3px solid var(--accent-2);}
   .notification-item strong{font-size:.84rem;}
   .notification-item p,.notification-item time{margin:0;color:var(--text-2);font-size:.75rem;overflow-wrap:anywhere;}
-  .manual-payment{display:grid;grid-template-columns:minmax(220px,.8fr) minmax(0,1.2fr);gap:24px;margin-top:18px;padding:20px;border-radius:10px;}
-  .manual-payment h3{margin:7px 0;font:700 1.1rem 'Space Grotesk',sans-serif;}
-  .manual-payment>div>p{color:var(--text-2);font-size:.82rem;}
-  .manual-payment-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px;}
-  .manual-payment-form .field:nth-child(3),.manual-payment-form button,.manual-payment-form .alert{grid-column:1/-1;}
-  .manual-payment-form input{width:100%;padding:10px 12px;border:1px solid var(--stroke);border-radius:8px;background:var(--bg-2);color:var(--text);font:inherit;}
-  .manual-payment-form .alert{margin:0;}
-  @media(max-width:700px){.manual-payment{grid-template-columns:1fr;gap:12px;padding:16px}.manual-payment-form{grid-template-columns:1fr}.manual-payment-form .field,.manual-payment-form button,.manual-payment-form .alert{grid-column:auto}.notification-panel{position:fixed;top:68px;right:12px;}}
+  @media(max-width:700px){.notification-panel{position:fixed;top:68px;right:12px;}}
   .main{min-width:0;}
   .topbar-actions{min-width:0;}
   .guide-dialog{width:min(520px,calc(100% - 28px));max-width:none;padding:0;border:1px solid var(--stroke-hover);border-radius:12px;background:var(--bg-2);color:var(--text);box-shadow:0 28px 90px rgba(0,0,0,.6);}
@@ -513,7 +453,7 @@
   .guide-actions{display:flex;align-items:center;gap:8px;margin-top:22px;}
   .guide-actions .guide-skip{margin-right:auto;}
   .guide-actions .btn{min-height:40px;padding:9px 14px;}
-  @media(max-width:768px){.topbar{gap:8px;padding:10px 12px}.topbar-actions{gap:6px}.topbar-actions .quick-deposit{width:40px;min-width:40px;padding:8px;font-size:0}.topbar-actions .quick-deposit i{font-size:.9rem}.topbar-actions .admin-badge{padding:7px 9px}.topbar-actions .icon-btn{width:38px;height:38px}.guide-content{padding:20px}.hero-cta .btn{flex:1 1 180px;}}
+  @media(max-width:768px){.topbar{gap:8px;padding:10px 12px}.topbar-actions{gap:6px}.topbar-actions .admin-badge{padding:7px 9px}.topbar-actions .icon-btn{width:38px;height:38px}.guide-content{padding:20px}.hero-cta .btn{flex:1 1 180px;}}
   @media(max-width:390px){.topbar-actions{gap:4px}.topbar-actions .user-chip{padding-right:7px}.topbar-actions .admin-badge{font-size:0}.topbar-actions .admin-badge i{font-size:.85rem}.guide-actions{flex-wrap:wrap}.guide-actions .guide-skip{width:100%;justify-content:center;}}
   :root{--bg:#111713;--bg-2:#18211b;--card:rgba(255,255,255,.035);--card-hover:rgba(255,255,255,.065);--stroke:rgba(190,210,194,.13);--stroke-hover:rgba(190,210,194,.25);--accent:#71d7b4;--accent-2:#d5f078;--accent-3:#ed946e;--text:#f2f5ef;--text-2:#a5b2a7;--text-3:#78867b;--radius-sm:6px;--radius:8px;--radius-lg:10px;--shadow:0 20px 60px rgba(0,0,0,.35)}
   body{background-color:var(--bg);background-image:linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),linear-gradient(135deg,rgba(113,215,180,.055),transparent 42%),var(--bg);background-size:32px 32px,32px 32px,auto,auto;font-family:'Outfit',sans-serif;letter-spacing:0}
@@ -566,7 +506,7 @@
   .main.sidebar-collapsed{margin-left:82px}
   .topbar{min-height:68px;padding:12px 28px;background:rgba(16,23,26,.92);border-color:var(--stroke)}
   body.light-mode .topbar{background:rgba(255,255,255,.94)}
-  .search-bar input,.icon-btn,.user-chip,.coin-header{border-radius:7px}
+  .search-bar input,.icon-btn,.user-chip{border-radius:7px}
   .search-bar input{background:var(--card);border-color:var(--stroke)}
   .icon-btn{width:40px;height:40px}
   .hero{padding:42px 36px 32px;border-color:var(--stroke);background:linear-gradient(110deg,rgba(84,214,189,.08),transparent 62%)}
@@ -600,7 +540,7 @@
   .btn-ghost:hover{border-color:var(--stroke-hover);background:var(--card-hover);transform:translateY(-1px)}
   .btn-admin{background:var(--accent-2);color:#241a0c}
   .btn-lime{background:var(--accent-2);color:#241a0c}
-  .field input,.field select,.field textarea,.tool-form input:not([type=color]),.tool-form select,.manual-payment-form input{min-height:42px;border-radius:7px;border-color:var(--stroke);background:var(--bg-2);color:var(--text)}
+  .field input,.field select,.field textarea,.tool-form input:not([type=color]),.tool-form select{min-height:42px;border-radius:7px;border-color:var(--stroke);background:var(--bg-2);color:var(--text)}
   .field input:focus,.field select:focus,.field textarea:focus,.search-bar input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(84,214,189,.14)}
   .field select option{background:var(--bg-2);color:var(--text)}
   .connect-card{background:linear-gradient(145deg,rgba(84,214,189,.08),rgba(239,189,98,.035));border-color:var(--stroke)}
@@ -610,7 +550,7 @@
   .history-table th{position:sticky;top:0;background:var(--bg-2)}
   .history-table td,.history-table th{border-color:var(--stroke)}
   .test-command-preview{border-radius:7px;background:rgba(84,214,189,.07)}
-  .notification-panel,.guide-dialog,.payment-panel{border-radius:9px;background:var(--bg-2);border-color:var(--stroke-hover)}
+  .notification-panel,.guide-dialog{border-radius:9px;background:var(--bg-2);border-color:var(--stroke-hover)}
   .mobile-nav{background:rgba(20,29,32,.96);border-color:var(--stroke);grid-template-columns:repeat(6,minmax(0,1fr))}
   body.light-mode .mobile-nav{background:rgba(255,255,255,.96)}
   .mobile-nav a{border-radius:6px}
@@ -651,7 +591,7 @@
     .main.sidebar-collapsed{margin-left:82px}
     .topbar{order:-10;min-height:74px;padding:12px 30px;background:rgba(255,255,255,.94);border-color:var(--stroke);backdrop-filter:blur(16px)}
     .search-bar{max-width:360px}.search-bar input{border-color:var(--stroke);border-radius:6px;background:#f4f7f5;color:var(--text)}
-    .topbar-actions{gap:8px}.coin-header{border-color:#d6e5df;border-radius:6px;background:#eef5f1;color:#256350}
+    .topbar-actions{gap:8px}
     .icon-btn{border-color:var(--stroke);border-radius:6px;background:#fff;color:var(--text-2)}
     .user-chip{border-color:var(--stroke);border-radius:6px;background:#fff}.user-chip .avatar{border-radius:5px;background:#d8f078}
     .hero{order:-9;display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,.75fr);gap:14px 28px;padding:34px 34px 28px;border-bottom:1px solid var(--stroke);background:linear-gradient(115deg,#fff 0%,#f5faf7 70%,#edf5ef 100%)}
@@ -684,18 +624,18 @@
     .surface,.bot-card,.connect-card,.pair-result,.history-card,.setting-row,.logs-container{border-color:var(--stroke);border-radius:7px;background:#fff;box-shadow:none;backdrop-filter:none}
     .surface{padding:18px}.bot-card{padding:18px}.bot-card:hover{transform:translateY(-2px);border-color:#b9cbc3;background:#fff;box-shadow:0 10px 24px rgba(21,49,39,.07)}
     .bot-avatar{border-radius:6px;background:#d8f078;color:#19372d}.status-pill{border-radius:4px}
-    .field input,.field select,.field textarea,.tool-form input:not([type=color]),.tool-form select,.manual-payment-form input{border-color:var(--stroke);border-radius:5px;background:#fff;color:var(--text)}
+    .field input,.field select,.field textarea,.tool-form input:not([type=color]),.tool-form select{border-color:var(--stroke);border-radius:5px;background:#fff;color:var(--text)}
     .field input:focus,.field select:focus,.field textarea:focus,.search-bar input:focus{border-color:#117a68;box-shadow:0 0 0 3px rgba(17,122,104,.12)}
     .bot-filter-bar{border-color:var(--stroke);border-radius:6px;background:#fff}.bot-filter{border-radius:4px}.bot-filter[aria-pressed=true]{background:#e8f4eb;color:#176b52}
     .logs-container{background:#f7faf8;color:var(--text-2)}
     .history-table th{background:#f1f6f3;color:var(--text-2)}.history-table td,.history-table th{border-color:var(--stroke)}
-    .notification-panel,.guide-dialog,.payment-panel{border-color:var(--stroke);border-radius:8px;background:#fff;color:var(--text);box-shadow:0 24px 70px rgba(20,43,34,.18)}
+    .notification-panel,.guide-dialog{border-color:var(--stroke);border-radius:8px;background:#fff;color:var(--text);box-shadow:0 24px 70px rgba(20,43,34,.18)}
     .mobile-nav{border-color:var(--stroke);background:rgba(255,255,255,.97);box-shadow:0 -8px 28px rgba(21,49,39,.08)}.mobile-nav a{border-radius:5px;color:var(--text-2)}.mobile-nav a.active{background:#e8f4eb;color:#117a68}
     #toast{background:#17352e;color:#fff}
     :focus-visible{outline:2px solid #117a68;outline-offset:2px}
     @media(max-width:1024px){.main,.main.sidebar-collapsed{margin-left:0}.sidebar{width:248px}.stats-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
     @media(max-width:768px){.topbar{min-height:62px;padding:9px 14px}.hero{grid-template-columns:1fr;padding:26px 20px 20px;gap:12px}.hero-badge,.hero h1,.hero p.lead,.hero-cta,.hero-stats{grid-column:1}.hero h1{font-size:2.2rem}.hero-stats{gap:14px}.account-overview{grid-column:1}.stats-grid{padding:14px 20px 6px}.stat-tile{padding:12px}.dashboard-strip{margin:12px 20px 0;grid-template-columns:1fr 1fr}.dashboard-strip .pulse-card:first-child,.platform-status{grid-column:1/-1}.section{padding:22px 20px}.mobile-nav{padding-inline:6px}.mobile-nav a{font-size:.62rem}}
-    @media(max-width:520px){.search-bar{display:none}.topbar-actions{gap:5px}.coin-header{padding:7px 9px;font-size:.68rem}.quick-deposit{padding-inline:10px}.user-chip{padding:4px}.user-chip .name{display:none}.hero h1{font-size:1.9rem}.hero p.lead{font-size:.83rem}.hero-stats{justify-content:space-between;gap:7px}.hero-stat{min-width:0;padding-right:8px}.hero-stat strong{font-size:1.16rem}.account-overview{gap:9px;padding:10px}.account-overview .quota-bar{display:none}.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:0;padding-inline:14px}.stat-tile,.stat-tile:first-child{padding:12px;border-right:1px solid var(--stroke);border-bottom:1px solid var(--stroke)}.stat-tile:nth-child(2n){border-right:0}.stat-tile:nth-last-child(-n+2){border-bottom:0}.dashboard-strip{margin-inline:14px}.section{padding-inline:14px}}
+    @media(max-width:520px){.search-bar{display:none}.topbar-actions{gap:5px}.user-chip{padding:4px}.user-chip .name{display:none}.hero h1{font-size:1.9rem}.hero p.lead{font-size:.83rem}.hero-stats{justify-content:space-between;gap:7px}.hero-stat{min-width:0;padding-right:8px}.hero-stat strong{font-size:1.16rem}.account-overview{gap:9px;padding:10px}.account-overview .quota-bar{display:none}.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:0;padding-inline:14px}.stat-tile,.stat-tile:first-child{padding:12px;border-right:1px solid var(--stroke);border-bottom:1px solid var(--stroke)}.stat-tile:nth-child(2n){border-right:0}.stat-tile:nth-last-child(-n+2){border-bottom:0}.dashboard-strip{margin-inline:14px}.section{padding-inline:14px}}
   </style>
 </head>
 <body class="auth-checking">
@@ -725,7 +665,6 @@
   </a>
   <a href="#messages" class="nav-item" data-tab="messages"><i class="fas fa-flask"></i> <span>Test bot</span></a>
   <a href="#connect" class="nav-item" data-tab="connect"><i class="fas fa-link"></i> <span>Connect</span></a>
-  <a href="#wallet" class="nav-item" data-tab="wallet"><i class="fas fa-wallet"></i> <span>Coin Wallet</span></a>
 
   <div class="nav-section-label">Configuration</div>
   <a href="#tools" class="nav-item" data-tab="tools"><i class="fas fa-toolbox"></i> <span>Tools</span></a>
@@ -748,8 +687,6 @@
       <input type="search" id="botSearch" placeholder="Search bots..." aria-label="Search bots">
     </div>
     <div class="topbar-actions">
-      <div class="coin-header" aria-live="polite"><i class="fas fa-coins"></i><span id="headerCoinBalance">0</span> coins</div>
-      <button class="btn btn-primary btn-sm quick-deposit" id="headerDepositButton" type="button" title="Ongeza coins kwa hiari"><i class="fas fa-plus"></i> Coins</button>
       <div class="notification-wrap">
         <button class="icon-btn" id="notificationsBtn" type="button" title="Notifications" aria-label="Notifications" aria-expanded="false" aria-controls="notificationPanel"><i class="fas fa-bell"></i><span class="dot"></span></button>
         <section class="notification-panel" id="notificationPanel" aria-label="Notifications" hidden>
@@ -832,8 +769,6 @@
     <div class="pulse-card"><div><span class="monitor-value" id="refreshCountdown">30s</span><span class="monitor-label">Next refresh</span></div></div>
     <div class="platform-status" style="grid-column:1/-1;">
       <div class="platform-status-item" id="whatsappStatus"><i class="fab fa-whatsapp"></i><div><strong>WhatsApp</strong><small>Inasubiri bot</small></div></div>
-      <div class="platform-status-item" id="telegramStatus"><i class="fab fa-telegram"></i><div><strong>Telegram</strong><small>Ready for integration</small></div></div>
-      <div class="platform-status-item" id="discordStatus"><i class="fab fa-discord"></i><div><strong>Discord</strong><small>Ready for integration</small></div></div>
     </div>
   </section>
 
@@ -851,30 +786,6 @@
     <div class="logs-container" id="activityLog" aria-live="polite">
       <div class="empty-state"><i class="fas fa-signal"></i>Waiting for bot activity...</div>
     </div>
-  </section>
-
-  <section class="section tab-panel" id="wallet" data-panel="wallet">
-    <div class="section-head"><div class="section-title"><h2>Coin Wallet · Hiari</h2><p>Coins hazihitajiki kuunganisha au kutumia bot zako.</p></div><span class="sync-badge" id="walletSyncStatus">Live sync active</span></div>
-    <div class="view-grid">
-      <div class="surface"><div class="wallet-label">Available balance</div><div class="wallet-balance" id="walletViewBalance">0</div><p id="walletViewMeta">Coins ni za hiari; deployment ni bure.</p><div class="utility-list"><button class="btn btn-primary" id="walletDepositButton" type="button"><i class="fas fa-plus"></i> Ongeza coins kwa hiari</button><button class="btn btn-ghost coin-utility" data-utility="packs" type="button"><i class="fas fa-store"></i> Angalia coin packs</button></div></div>
-      <div class="surface"><h3>Wallet health</h3><p>Historia ya coins za hiari kwenye workspace hii.</p><div class="bot-metrics" style="margin-top:18px;"><div class="metric"><div class="v" id="walletDeployableBots">0</div><div class="l">Coin units</div></div><div class="metric"><div class="v" id="walletTransactionCount">0</div><div class="l">Transactions</div></div><div class="metric"><div class="v" id="walletSpendRate">0</div><div class="l">Spent</div></div></div></div>
-    </div>
-    <div class="manual-payment surface">
-      <div><div class="eyebrow">Optional coin top-up</div><h3>Ongeza coins kwa hiari</h3><p>Top-up haihitajiki kwa deployment. Ukitaka kuongeza coins, tuma malipo kwa namba <strong>255615944741</strong> · Halotel · <strong>MICKDADI HAMZA SALIM</strong>. Kila TZS 50 ni coin 1; admin atathibitisha risiti.</p></div>
-      <form id="manualPaymentForm" class="manual-payment-form">
-        <div class="field"><label for="manualPayerPhone">Namba uliyolipia</label><input id="manualPayerPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="2556..." required></div>
-        <div class="field"><label for="manualPaymentAmount">Kiasi (TZS, hatua za 50)</label><input id="manualPaymentAmount" type="number" min="50" step="50" placeholder="500" required><small id="manualCoinPreview">0 coins</small></div>
-        <div class="field"><label for="manualPaymentReference">Uthibitisho / transaction ID</label><input id="manualPaymentReference" maxlength="80" placeholder="Reference ya SMS ya malipo" required></div>
-        <button class="btn btn-primary" id="submitManualPayment" type="submit"><i class="fas fa-receipt"></i> Tuma ombi la coins</button>
-        <p class="alert" id="manualPaymentStatus" role="status" aria-live="polite"></p>
-      </form>
-    </div>
-    <div class="history-card"><div class="history-toolbar"><div class="section-title"><h3>Historia ya miamala</h3><p>Coin top-ups na marekebisho ya wallet.</p></div><div class="history-filter" role="group" aria-label="Chuja miamala"><button class="active" data-transaction-filter="ALL" type="button">Zote</button><button data-transaction-filter="COIN_PURCHASE" type="button">Deposit</button><button data-transaction-filter="BOT_DEPLOYMENT" type="button">Bot</button><button data-transaction-filter="FAILED" type="button">Failed</button></div></div><table class="history-table"><thead><tr><th>Tarehe</th><th>Muamala</th><th>Coins</th><th>Status</th></tr></thead><tbody id="walletTransactionHistory"><tr><td colspan="4">Inapakia...</td></tr></tbody></table></div>
-  </section>
-
-  <section class="section tab-panel" id="store" data-panel="store">
-    <div class="section-head"><div class="section-title"><h2>Marketplace</h2><p>Coin packs ni za hiari; hazifungui wala hazihitajiki kwa bot deployment.</p></div></div>
-    <div class="pack-grid"><button class="pack-card buy-pack" data-coins="10" type="button"><strong>Starter Pack</strong><span>Coins 10 · za hiari</span><b>TZS 500 <i class="fas fa-arrow-right"></i></b></button><button class="pack-card buy-pack" data-coins="50" type="button"><strong>Pro Pack</strong><span>Coins 50 · za hiari</span><b>TZS 2,500 <i class="fas fa-arrow-right"></i></b></button><button class="pack-card buy-pack" data-coins="100" type="button"><strong>Enterprise</strong><span>Coins 100 · za hiari</span><b>TZS 5,000 <i class="fas fa-arrow-right"></i></b></button></div>
   </section>
 
   <section class="section tab-panel" id="tools" data-panel="tools">
@@ -895,7 +806,6 @@
       <article class="surface tool-card"><h3>Contact card</h3><form id="vcardForm" class="tool-form"><input id="vcardName" placeholder="Jina" required><input id="vcardPhone" type="tel" placeholder="Simu"><input id="vcardEmail" type="email" placeholder="Email"><button class="btn btn-ghost btn-sm" type="submit">Pakua vCard</button></form></article>
       <article class="surface tool-card"><h3>Wikipedia</h3><form id="wikiForm" class="tool-form"><input id="wikiQuery" maxlength="100" placeholder="Tafuta mada" required><button class="btn btn-ghost btn-sm" type="submit">Tafuta</button></form><div id="wikiOutput" class="tool-output" aria-live="polite"></div></article>
       <article class="surface tool-card"><h3>Habari mpya</h3><form id="newsForm" class="tool-form"><select id="newsCategory"><option value="general">Jumla</option><option value="technology">Teknolojia</option><option value="business">Biashara</option><option value="science">Sayansi</option><option value="sports">Michezo</option></select><button class="btn btn-ghost btn-sm" type="submit">Pakia habari</button></form><div id="newsOutput" class="tool-output" aria-live="polite"></div></article>
-      <article class="surface tool-card"><h3>Crypto prices</h3><form id="cryptoForm" class="tool-form"><select id="cryptoCoin"><option value="bitcoin">Bitcoin</option><option value="ethereum">Ethereum</option><option value="solana">Solana</option><option value="tether">Tether</option></select><button class="btn btn-ghost btn-sm" type="submit">Angalia bei</button></form><div id="cryptoOutput" class="tool-output" aria-live="polite"></div></article>
       <article class="surface tool-card"><h3>Caption & hashtags</h3><form id="captionForm" class="tool-form"><input id="captionTopic" maxlength="100" placeholder="Mada ya post" required><button class="btn btn-ghost btn-sm" type="submit">Tengeneza</button></form><div id="captionOutput" class="tool-output" aria-live="polite"></div></article>
       <article class="surface tool-card"><h3>Meme maker</h3><div class="tool-form"><input id="memeTop" maxlength="80" placeholder="Maandishi ya juu"><input id="memeBottom" maxlength="80" placeholder="Maandishi ya chini"><input id="memeColor" type="color" value="#d5f078" aria-label="Rangi ya meme"><button class="btn btn-ghost btn-sm" id="makeMeme" type="button">Tengeneza meme</button><button class="btn btn-ghost btn-sm" id="downloadMeme" type="button">Pakua</button></div><canvas id="memeCanvas" width="640" height="420" class="meme-canvas"></canvas></article>
       <article class="surface tool-card"><h3>Huduma zilizo karibu</h3><p class="tool-copy">Tumia location yako kutafuta hospitali, ATM na vituo vya polisi vilivyo karibu.</p><button class="btn btn-ghost btn-sm" id="nearbySearch" type="button">Tafuta karibu nami</button><div id="nearbyOutput" class="tool-output" aria-live="polite"></div></article>
@@ -982,7 +892,6 @@
       <div class="section-title"><h3>Bot strategy</h3><p>Fine-tune behavior ya bot hii. Changes zinasync kupitia WebSocket.</p></div>
       <div class="range-row"><label for="claimFrequency">Auto-claim frequency<small>Frequency ya bot ku-check rewards</small></label><output id="claimFrequencyValue">30s</output><input id="claimFrequency" data-strategy="claimFrequency" type="range" min="5" max="120" step="5" value="30"></div>
       <div class="range-row"><label for="riskTolerance">Risk tolerance<small>Balance kati ya speed na protection</small></label><output id="riskToleranceValue">40%</output><input id="riskTolerance" data-strategy="riskTolerance" type="range" min="0" max="100" step="5" value="40"></div>
-      <div class="range-row"><label for="targetCoinLimit">Target coin limit<small>Simamisha auto-claim ukifikia target</small></label><output id="targetCoinLimitValue">100</output><input id="targetCoinLimit" data-strategy="targetCoinLimit" type="range" min="10" max="1000" step="10" value="100"></div>
       <button class="btn btn-lime" id="saveStrategyBtn" type="button" style="margin-top:16px;"><i class="fas fa-sliders"></i> Save strategy</button>
     </div>
     <div style="margin-top:24px;display:flex;gap:16px;align-items:end;flex-wrap:wrap;">
@@ -1045,24 +954,9 @@
   <a href="#dashboard" class="active" data-tab="dashboard"><i class="fas fa-th-large"></i>Home</a>
   <a href="#bots" data-tab="bots"><i class="fas fa-robot"></i>Bots</a>
   <a href="#messages" data-tab="messages"><i class="fas fa-flask"></i>Test</a>
-  <a href="#wallet" data-tab="wallet"><i class="fas fa-wallet"></i>Wallet</a>
   <a href="#connect" data-tab="connect"><i class="fas fa-link"></i>Connect</a>
   <a href="#settings" data-tab="settings"><i class="fas fa-cog"></i>Settings</a>
 </nav>
-
-<div class="payment-modal" id="paymentModal" role="dialog" aria-modal="true" aria-labelledby="paymentTitle">
-  <div class="payment-panel">
-    <h2 id="paymentTitle">Lipa kwa PalmPesa</h2>
-    <p class="payment-copy" id="paymentSummary">Weka namba ya simu. Utapokea USSD prompt ya malipo.</p>
-    <div class="field"><label for="paymentPhone">Namba ya simu</label><input id="paymentPhone" type="tel" placeholder="0693662424 au 255693662424" inputmode="tel" autocomplete="tel"></div>
-    <div style="display:flex;gap:10px;">
-      <button class="btn btn-ghost" id="closePaymentButton" type="button">Funga</button>
-      <button class="btn btn-primary" id="submitPaymentButton" type="button">Lipa sasa</button>
-    </div>
-    <div class="payment-progress" id="paymentProgress"><i class="fas fa-circle-notch fa-spin"></i><span>Tuma ombi kwenye simu yako... Inasubiri PIN</span></div>
-    <div class="alert" id="paymentAlert"></div>
-  </div>
-</div>
 
 <dialog class="guide-dialog" id="onboardingDialog" aria-labelledby="guideTitle" aria-describedby="guideDescription">
   <div class="guide-content">
@@ -1086,9 +980,7 @@ var currentUser = { name: 'MICKEY Control', isAdmin: true, botLimit: 999, botCou
 var accountReady = true;
 var botsById = {};
 var latestBots = [];
-var latestTransactions = [];
 var activityEntries = [];
-var activeTransactionFilter = 'ALL';
 var activeBotFilter = 'all';
 var refreshTimer = null;
 var refreshSeconds = 30;
@@ -1216,67 +1108,10 @@ function applyUserToUI(user) {
   if (hint) hint.textContent = user.isAdmin ? 'Admin access: manage all connected bots.' : (quotaCount >= quotaLimit ? 'Bot limit imefika. Tumia token ku-manage bots zako.' : 'Bado una nafasi ya deploy bot nyingine.');
   var pairingKey = document.getElementById('pairingAccessKey');
   if (pairingKey) pairingKey.textContent = user.pairingAccessKey || '—';
-  updateWalletUI(user);
   loadNotifications();
 
   document.body.classList.add('authenticated');
   showFirstUseGuide(user);
-}
-
-function updateWalletUI(user) {
-  var balance = Number(user && user.coinBalance || 0);
-  var balanceEl = document.getElementById('coinBalance');
-  var deployableEl = document.getElementById('deployableBots');
-  if (balanceEl) {
-    var previous = Number(balanceEl.dataset.value || 0);
-    var startedAt = performance.now();
-    function tick(now) {
-      var progress = Math.min(1, (now - startedAt) / 420);
-      var eased = 1 - Math.pow(1 - progress, 3);
-      balanceEl.textContent = Math.round(previous + ((balance - previous) * eased));
-      if (progress < 1) requestAnimationFrame(tick);
-    }
-    balanceEl.dataset.value = String(balance);
-    requestAnimationFrame(tick);
-  }
-  if (deployableEl) deployableEl.textContent = 'Coins ni za hiari; deployment ni bure.';
-  ['headerCoinBalance', 'walletViewBalance'].forEach(function(id) {
-    var el = document.getElementById(id);
-    if (el) el.textContent = balance;
-  });
-  var deployableView = document.getElementById('walletDeployableBots');
-  if (deployableView) deployableView.textContent = balance;
-  var walletMeta = document.getElementById('walletViewMeta');
-  if (walletMeta) walletMeta.textContent = 'Coins ni za hiari; deployment ni bure.';
-}
-
-function renderTransactionHistory(items) {
-  latestTransactions = Array.isArray(items) ? items : [];
-  var visibleItems = latestTransactions.filter(function(item) {
-    return activeTransactionFilter === 'ALL' || item.type === activeTransactionFilter || item.status === activeTransactionFilter;
-  });
-  var walletBody = document.getElementById('walletTransactionHistory');
-  if (walletBody) {
-    walletBody.innerHTML = visibleItems.length ? visibleItems.map(function(item) {
-      var status = item.status || 'PENDING';
-      var statusClass = status === 'SUCCESS' || status === 'REFUNDED' ? 'success' : status === 'FAILED' ? 'failed' : 'pending';
-      var type = item.type === 'MANUAL_COIN_PURCHASE' ? 'Manual Halotel' : item.type === 'DEPLOYMENT_REFUND' ? 'Deployment refund' : (item.type || 'Wallet');
-      return '<tr><td>' + escapeHtml(new Date(item.createdAt).toLocaleString()) + '</td><td>' + escapeHtml(type) + '</td><td>' + escapeHtml(item.coins || 0) + '</td><td><span class="status-badge ' + statusClass + '">' + escapeHtml(status) + '</span></td></tr>';
-    }).join('') : '<tr><td colspan="4">Hakuna transaction bado.</td></tr>';
-  }
-  var count = document.getElementById('walletTransactionCount');
-  if (count) count.textContent = latestTransactions.length;
-  var spent = latestTransactions.reduce(function(total, item) { return total + Math.abs(Number(item.coins || 0) < 0 ? Number(item.coins || 0) : 0); }, 0);
-  var spendRate = document.getElementById('walletSpendRate');
-  if (spendRate) spendRate.textContent = spent;
-}
-
-function loadWallet() {
-  return fetch('/api/wallet').then(readJsonResponse).then(function(result) {
-    if (!result.ok) return;
-    updateWalletUI({ coinBalance: result.data.wallet.balance, deployableBots: result.data.wallet.deployableBots });
-    renderTransactionHistory(result.data.transactions);
-  }).catch(function() {});
 }
 
 function renderNotifications(items) {
@@ -1318,49 +1153,6 @@ function loadNotifications() {
     if (result.ok) renderNotifications(result.data.notifications);
   }).catch(function() {});
 }
-
-var manualAmountInput = document.getElementById('manualPaymentAmount');
-if (manualAmountInput) manualAmountInput.addEventListener('input', function() {
-  var coins = Number(manualAmountInput.value || 0) / 50;
-  var preview = document.getElementById('manualCoinPreview');
-  if (preview) preview.textContent = Number.isInteger(coins) ? coins + ' coins' : 'Kiasi kigawanyike kwa TZS 50';
-});
-
-var manualPaymentForm = document.getElementById('manualPaymentForm');
-if (manualPaymentForm) manualPaymentForm.addEventListener('submit', function(event) {
-  event.preventDefault();
-  var button = document.getElementById('submitManualPayment');
-  var status = document.getElementById('manualPaymentStatus');
-  var amount = Number(document.getElementById('manualPaymentAmount').value);
-  if (!Number.isSafeInteger(amount) || amount < 50 || amount % 50 !== 0) {
-    status.className = 'alert show error';
-    status.textContent = 'Kiasi kiwe TZS 50 au zaidi na kigawanyike kwa 50.';
-    return;
-  }
-  button.disabled = true;
-  status.className = 'alert show warn';
-  status.textContent = 'Inatuma ombi...';
-  fetch('/api/manual-payments', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      payerPhone: normalizePhone(document.getElementById('manualPayerPhone').value),
-      amount: amount,
-      reference: document.getElementById('manualPaymentReference').value.trim()
-    })
-  }).then(readJsonResponse).then(function(result) {
-    if (!result.ok) throw new Error(result.data.error || 'Ombi halikutumwa.');
-    status.className = 'alert show success';
-    status.textContent = 'Ombi limetumwa kwa admin. Coins zitaingia baada ya kuthibitishwa.';
-    manualPaymentForm.reset();
-    document.getElementById('manualCoinPreview').textContent = '0 coins';
-    loadWallet();
-    loadNotifications();
-  }).catch(function(error) {
-    status.className = 'alert show error';
-    status.textContent = error.message;
-  }).finally(function() { button.disabled = false; });
-});
 
 function requestPairAccessKey() {
   return currentUser && currentUser.pairingAccessKey ? currentUser.pairingAccessKey : null;
@@ -1441,19 +1233,11 @@ if (socket) {
     appendActivity(entry.message || 'Bot event received.', entry.type || 'info');
     var dot = document.querySelector('#notificationsBtn .dot');
     if (dot) dot.style.display = 'block';
-    if (entry && /coin|wallet|deploy|reward/i.test(entry.message || '')) loadWallet();
   });
 
   socket.on('user-notification', function(notification) {
     if (notification) showToast(notification.title || 'Notification mpya');
     loadNotifications();
-  });
-
-  socket.on('wallet-updated', function(payload) {
-    if (!payload || !payload.wallet) return;
-    updateWalletUI({ coinBalance: payload.wallet.balance, deployableBots: payload.wallet.deployableBots });
-    loadWallet();
-    appendActivity('Wallet ime-sync: ' + payload.wallet.balance + ' coins.', 'success');
   });
 
   socket.on('bot-state', function(state) {
@@ -1670,7 +1454,7 @@ function loadBotSettings(bot) {
   if (prefix) prefix.value = String(settings.prefix || '.');
   var cooldown = document.getElementById('commandCooldown');
   if (cooldown) cooldown.value = String(Math.max(0, Math.min(60, Number(settings.commandCooldown || 0))));
-  var strategyDefaults = { claimFrequency: 30, riskTolerance: 40, targetCoinLimit: 100 };
+  var strategyDefaults = { claimFrequency: 30, riskTolerance: 40 };
   Object.keys(strategyDefaults).forEach(function(key) {
     var input = document.querySelector('[data-strategy="' + key + '"]');
     var value = Number(settings[key] === undefined ? strategyDefaults[key] : settings[key]);
@@ -1728,70 +1512,6 @@ if (requestBtn) {
   });
 }
 
-/* ============================================================
-   UI
-   ============================================================ */
-var selectedCoins = 10;
-var paymentModal = document.getElementById('paymentModal');
-var paymentSummary = document.getElementById('paymentSummary');
-var paymentPhone = document.getElementById('paymentPhone');
-var paymentProgress = document.getElementById('paymentProgress');
-var paymentAlert = document.getElementById('paymentAlert');
-function openPayment(coins) {
-  selectedCoins = Number(coins) || 10;
-  if (paymentSummary) paymentSummary.textContent = 'Coin ' + selectedCoins + ' = TZS ' + (selectedCoins * 50).toLocaleString() + '. Weka namba ya simu kupokea USSD prompt.';
-  if (paymentModal) paymentModal.classList.add('open');
-  if (paymentPhone) paymentPhone.focus();
-}
-function showPaymentAlert(message, type) {
-  if (!paymentAlert) return;
-  paymentAlert.className = 'alert show ' + type;
-  paymentAlert.textContent = message;
-}
-function pollPayment(orderId, attempts) {
-  if (!orderId || attempts > 8) return;
-  fetch('/api/palmpesa/status', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ orderId: orderId }) })
-    .then(readJsonResponse).then(function(result) {
-      var status = result.data && result.data.transaction && result.data.transaction.status;
-      if (status === 'SUCCESS') {
-        showPaymentAlert('Malipo yamekamilika. Coins zimeongezwa.', 'success');
-        loadWallet();
-        return;
-      }
-      if (status === 'FAILED') { showPaymentAlert('Malipo yameshindikana. Jaribu tena.', 'error'); return; }
-      window.setTimeout(function() { pollPayment(orderId, attempts + 1); }, Math.min(30000, 1500 * Math.pow(2, attempts)));
-    }).catch(function() { window.setTimeout(function() { pollPayment(orderId, attempts + 1); }, 5000); });
-}
-document.querySelectorAll('.buy-pack').forEach(function(button) { button.addEventListener('click', function() { openPayment(button.dataset.coins); }); });
-var customPackButton = document.getElementById('customPackButton');
-if (customPackButton) customPackButton.addEventListener('click', function() {
-  var coins = Number(window.prompt('Weka idadi ya coins (multiple ya 10):', '10'));
-  if (Number.isInteger(coins) && coins >= 10 && coins % 10 === 0) openPayment(coins);
-});
-var storeCustomPackButton = document.getElementById('storeCustomPackButton');
-if (storeCustomPackButton) storeCustomPackButton.addEventListener('click', function() {
-  var coins = Number(window.prompt('Weka idadi ya coins (multiple ya 10):', '10'));
-  if (Number.isInteger(coins) && coins >= 10 && coins % 10 === 0) openPayment(coins);
-});
-var addCoinsButton = document.getElementById('addCoinsButton');
-if (addCoinsButton) addCoinsButton.addEventListener('click', function() { openPayment(10); });
-var closePaymentButton = document.getElementById('closePaymentButton');
-if (closePaymentButton) closePaymentButton.addEventListener('click', function() { if (paymentModal) paymentModal.classList.remove('open'); });
-var submitPaymentButton = document.getElementById('submitPaymentButton');
-if (submitPaymentButton) submitPaymentButton.addEventListener('click', function() {
-  var phone = normalizePhone(paymentPhone && paymentPhone.value);
-  if (!isValidInternationalPhone(phone)) { showPaymentAlert('Weka namba halali ya Tanzania.', 'error'); return; }
-  submitPaymentButton.disabled = true;
-  if (paymentProgress) paymentProgress.classList.add('show');
-  fetch('/api/palmpesa/initiate', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ coins: selectedCoins, phone: phone }) })
-    .then(readJsonResponse).then(function(result) {
-      if (!result.ok) throw new Error(result.data.error || 'Malipo hayajaanzishwa.');
-      showPaymentAlert('USSD prompt imetumwa. Ingiza PIN kwenye simu yako.', 'warn');
-      pollPayment(result.data.orderId, 0);
-    }).catch(function(error) { showPaymentAlert(error.message, 'error'); })
-    .finally(function() { submitPaymentButton.disabled = false; if (paymentProgress) paymentProgress.classList.remove('show'); });
-});
-
 var sidebar = document.getElementById('sidebar');
 var menuBtn = document.getElementById('menuBtn');
 if (menuBtn) menuBtn.addEventListener('click', function(){ sidebar.classList.toggle('open'); });
@@ -1816,7 +1536,7 @@ var guideSteps = [
   },
   {
     title: 'Unganisha WhatsApp',
-    description: 'Kwenye Connect, andika namba ya WhatsApp yenye country code kisha bonyeza Omba Pairing Code. Hakuna coin wala malipo yanayohitajika.',
+    description: 'Kwenye Connect, andika namba ya WhatsApp yenye country code kisha bonyeza Omba Pairing Code. Kuunganisha bot ni bure.',
     icon: 'fa-link',
     tab: 'connect'
   },
@@ -1966,11 +1686,6 @@ if (localStorage.getItem('mickey-sidebar-collapsed') === '1' && window.innerWidt
   if (main) main.classList.add('sidebar-collapsed');
   if (sidebarToggle) sidebarToggle.innerHTML = '<i class="fas fa-angle-right"></i>';
 }
-function openDepositView() { activateTab('store'); openPayment(10); }
-['headerDepositButton', 'walletDepositButton'].forEach(function(id) {
-  var button = document.getElementById(id);
-  if (button) button.addEventListener('click', openDepositView);
-});
 document.querySelectorAll('[data-strategy]').forEach(function(input) {
   var output = document.getElementById(input.id + 'Value');
   function updateStrategyValue() {
@@ -1987,18 +1702,6 @@ if (saveStrategyBtn) saveStrategyBtn.addEventListener('click', function() {
   document.querySelectorAll('[data-strategy]').forEach(function(input) { strategy[input.dataset.strategy] = Number(input.value); });
   socket.emit('update-bot-settings', { userId: botId, settings: strategy });
   showToast('Bot strategy inahifadhiwa...');
-});
-document.querySelectorAll('[data-transaction-filter]').forEach(function(button) {
-  button.addEventListener('click', function() {
-    activeTransactionFilter = button.dataset.transactionFilter || 'ALL';
-    document.querySelectorAll('[data-transaction-filter]').forEach(function(item) { item.classList.toggle('active', item === button); });
-    renderTransactionHistory(latestTransactions);
-  });
-});
-document.querySelectorAll('.coin-utility').forEach(function(button) {
-  button.addEventListener('click', function() {
-    if (button.dataset.utility === 'packs') activateTab('store');
-  });
 });
 var clearActivityBtn = document.getElementById('clearActivityBtn');
 if (clearActivityBtn) clearActivityBtn.addEventListener('click', function() {
