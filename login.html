@@ -130,6 +130,33 @@
     @media(max-width:760px){body{padding:16px}.shell{grid-template-columns:1fr;max-width:540px;margin:44px auto 0}.pitch{min-height:0;padding:28px 26px;border-right:0;border-bottom:1px solid var(--line)}.mark{margin-bottom:22px}.pitch h1{font-size:38px}.perks{margin-top:20px}.card{padding:27px 25px}}
     @media(max-width:380px){body{padding:12px}.shell{margin-top:42px}.pitch{padding:23px 19px}.pitch h1{font-size:33px}.card{padding:23px 19px}.theme-toggle{top:10px;right:10px}}
   </style>
+  <style id="workspace-redesign">
+    :root{--bg:#f1f5f3;--panel:#fff;--line:#d9e3df;--muted:#667970;--text:#172822;--orange:#117a68;--pink:#e5a63b;--lime:#117a68;--cyan:#117a68;--danger:#bd4e48}
+    body{background-color:var(--bg);background-image:linear-gradient(90deg,rgba(22,66,51,.025) 1px,transparent 1px),linear-gradient(rgba(22,66,51,.025) 1px,transparent 1px);background-size:28px 28px;color:var(--text)}
+    .shell{width:min(1120px,100%);grid-template-columns:minmax(0,1fr) minmax(330px,.78fr);border:1px solid var(--line);border-radius:8px;background:#fff;box-shadow:0 24px 70px rgba(21,49,39,.12);backdrop-filter:none}
+    .card{order:-1;padding:48px;background:#fff}
+    .pitch{min-height:590px;padding:48px;background-color:#17352e;background-image:linear-gradient(145deg,rgba(84,214,189,.1),transparent 65%),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px);background-size:auto,30px 30px,30px 30px;border:0;color:#f5faf7}
+    .mark{width:42px;height:42px;margin-bottom:44px;border-radius:6px;background:#d8f078;color:#17352e;box-shadow:none}
+    .eyebrow{color:#d8f078;letter-spacing:.1em}
+    .pitch h1{max-width:440px;font-size:48px;line-height:1.06;color:#fff}
+    .pitch h1 span{background:linear-gradient(100deg,#d8f078,#54d6bd);-webkit-background-clip:text;background-clip:text}
+    .pitch p{color:#c0d2c9}
+    .perks{grid-template-columns:1fr;gap:7px;margin-top:26px}
+    .perk{min-height:39px;padding:6px 9px;border:1px solid rgba(255,255,255,.12);border-radius:5px;background:rgba(255,255,255,.04);color:#e1ebe5;font-size:.76rem}
+    .perk b{width:23px;height:23px;flex:0 0 23px;border:0;border-radius:4px;background:rgba(216,240,120,.15);color:#d8f078;font-size:.65rem}
+    .tabs{border-color:var(--line);border-radius:6px;background:#f1f5f3}
+    .tab{border-radius:4px;color:var(--muted)}.tab.active{background:#17352e;color:#fff;box-shadow:none}
+    .card h2{color:#17352e;letter-spacing:0}.sub{color:var(--muted)}
+    .field label{color:#52665e}.field input{min-height:44px;border-color:var(--line);border-radius:5px;background:#f8faf9;color:var(--text)}
+    .field input:focus{border-color:#117a68;box-shadow:0 0 0 3px rgba(17,122,104,.12)}
+    .show-pass{color:#117a68}.btn{min-height:44px;border-radius:5px;background:#117a68;color:#fff;box-shadow:none}.btn:hover{background:#0d6557;box-shadow:none}
+    .hint{border-color:var(--line);border-left:3px solid #e5a63b;border-radius:5px;background:#f8faf9;color:var(--muted)}.hint b{color:#176b52}
+    .foot{color:var(--muted)}.theme-toggle{border-color:var(--line);border-radius:5px;background:#fff;color:#52665e}.theme-toggle:hover{border-color:#117a68;color:#117a68}
+    .light-mode body{background-color:var(--bg);background-image:linear-gradient(90deg,rgba(22,66,51,.025) 1px,transparent 1px),linear-gradient(rgba(22,66,51,.025) 1px,transparent 1px)}
+    :focus-visible{outline:2px solid #117a68;outline-offset:3px}
+    @media(max-width:760px){body{padding:16px}.shell{grid-template-columns:1fr;max-width:540px;margin:44px auto 0}.card{order:-1;padding:28px 26px}.pitch{order:1;min-height:0;padding:26px;border-top:1px solid var(--line)}.mark{margin-bottom:22px}.pitch h1{font-size:36px}.perks{grid-template-columns:1fr 1fr;margin-top:18px}.perk{font-size:.68rem}}
+    @media(max-width:380px){body{padding:12px}.shell{margin-top:42px}.card{padding:22px 19px}.pitch{padding:22px 19px}.pitch h1{font-size:32px}.theme-toggle{top:10px;right:10px}}
+  </style>
 </head>
 <body>
   <button class="theme-toggle" id="loginThemeToggle" type="button" aria-label="Badili theme"><span aria-hidden="true">◐</span></button>

@@ -143,6 +143,45 @@
     @media(max-width:760px){.shell{padding:12px 16px 38px}.top{margin:0 -16px;padding:10px 16px;background:rgba(16,23,26,.94)}.hero{padding:28px 0 20px}.hero h1{font-size:28px}.stats{gap:8px}.stat,.stat:first-child,.stat:last-child{min-height:82px;padding:13px}.tabs{top:59px}.table-wrap{max-height:58vh}.section-head{align-items:flex-start}}
     @media(max-width:420px){.brand strong{font-size:14px}.top-actions{gap:4px}.top-actions .button{width:36px;min-width:36px;padding:7px}.hero h1{font-size:25px}.stat strong{font-size:21px}}
   </style>
+  <style id="workspace-redesign">
+    :root{color-scheme:light;--bg:#f1f5f3;--surface:#fff;--surface-2:#f3f8f5;--line:#d9e3df;--text:#172822;--muted:#667970;--lime:#117a68;--mint:#117a68;--amber:#b97820;--red:#bd4e48;--radius:6px;--shadow:0 8px 24px rgba(21,49,39,.06)}
+    body{background-color:var(--bg);background-image:linear-gradient(90deg,rgba(22,66,51,.025) 1px,transparent 1px),linear-gradient(rgba(22,66,51,.025) 1px,transparent 1px);background-size:28px 28px;color:var(--text)}
+    .shell{max-width:1440px;padding:20px 34px 56px}
+    .top{background:rgba(255,255,255,.94);border-color:var(--line);backdrop-filter:blur(16px)}
+    .mark{border-radius:6px;background:#17352e;color:#d8f078;box-shadow:none}
+    .brand strong,.hero h1,.stat strong,.dialog-head h2{color:#17352e}
+    .brand span{color:var(--muted)}
+    .button{border-color:var(--line);border-radius:6px;background:#fff;color:var(--text)}
+    .button:hover{border-color:#9bb8aa;background:#f6faf8}
+    .button.primary{border-color:#117a68;background:#117a68;color:#fff;box-shadow:none}
+    .button.primary:hover{border-color:#0d6557;background:#0d6557}
+    .button.danger{color:#bd4e48}
+    .hero{padding:34px 0 24px}
+    .hero h1{font-size:30px}
+    .eyebrow{color:#117a68}
+    .stats{gap:0;border:1px solid var(--line);border-radius:7px;background:#fff;overflow:hidden}
+    .stat,.stat:first-child,.stat:last-child{min-height:90px;padding:15px 18px;border:0;border-right:1px solid var(--line);border-radius:0;background:#fff;box-shadow:none}
+    .stat:last-child{border-right:0}.stat:before{width:3px;background:#117a68}.stat:nth-child(2):before{background:#e5a63b}.stat:nth-child(3):before{background:#54b7a0}.stat:nth-child(4):before{background:#cb6253}
+    .stat span{color:var(--muted)}.stat strong{color:#17352e}
+    .tabs{width:max-content;max-width:100%;gap:3px;padding:4px;border:1px solid var(--line);border-radius:6px;background:#e7eeea}
+    .tab{border-radius:4px;color:#61736a}.tab[aria-selected=true]{background:#17352e;color:#fff}
+    .toolbar .search input,.search input{border-color:var(--line);border-radius:5px;background:#fff;color:var(--text)}
+    .table-wrap{border-color:var(--line);border-radius:7px;background:#fff;box-shadow:none}
+    th{background:#f1f6f3;color:#566960;border-color:var(--line)}
+    td{border-color:#e8efeb;color:var(--text)}tbody tr:hover{background:#f5faf7}
+    .pill{border-radius:4px}.pill.online{background:#e8f4eb;color:#176b52}.pill.admin{background:#fff2d9;color:#8e601c}
+    .edit-coins{color:#117a68}
+    .env-intro,.env-item,.feature-control{border-color:var(--line);border-radius:6px;background:#fff}
+    .env-grid{border-color:var(--line);border-radius:6px;background:var(--line)}
+    .env-item:hover{background:#f7faf8}
+    .env-controls input[type=text],.env-controls input[type=password],.ops-broadcast select,.ops-broadcast textarea,.notification-composer input,.notification-composer select,.notification-composer textarea{border-color:var(--line);border-radius:5px;background:#f8faf9;color:var(--text)}
+    .banner{border-radius:5px}
+    dialog{border-color:var(--line);border-radius:8px;background:#fff;color:var(--text);box-shadow:0 28px 90px rgba(21,49,39,.2)}
+    .ops-grid{gap:12px}
+    .feature-control{background:#f8faf9}
+    .feature-control input{accent-color:#117a68}
+    @media(max-width:760px){.shell{padding:12px 16px 38px}.top{margin:0 -16px;padding:11px 16px}.hero{padding-top:28px}.stats{gap:8px;border:0;background:transparent;overflow:visible}.stat,.stat:first-child,.stat:last-child{min-height:82px;padding:12px;border:1px solid var(--line);border-radius:5px}.tabs{background:#e7eeea}.ops-grid{grid-template-columns:1fr}}
+  </style>
 </head>
 <body>
   <main class="shell">
