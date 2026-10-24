@@ -2570,6 +2570,34 @@ app.use('/api', (req, res, next) => {
 
 app.get('/admin.html', (req, res) => res.redirect('/admin'));
 
+app.get('/api/app-downloads', (req, res) => {
+    const getHttpsUrl = (value) => {
+        try {
+            const url = new URL(String(value || '').trim());
+            return url.protocol === 'https:' && !url.username && !url.password ? url.toString() : null;
+        } catch {
+            return null;
+        }
+    };
+
+    res.set('Cache-Control', 'public, max-age=300');
+    return res.json({
+        android: getHttpsUrl(process.env.APP_DOWNLOAD_ANDROID_URL),
+        ios: getHttpsUrl(process.env.APP_DOWNLOAD_IOS_URL),
+        desktop: getHttpsUrl(process.env.APP_DOWNLOAD_DESKTOP_URL)
+    });
+});
+
+app.get('/download', (req, res) => {
+    res.set('Cache-Control', 'no-cache');
+    return res.sendFile(path.join(__dirname, 'download.html'));
+});
+
+app.get('/sw.js', (req, res) => {
+    res.set('Cache-Control', 'no-cache');
+    return res.sendFile(path.join(__dirname, 'sw.js'));
+});
+
 app.use(
     express.static(__dirname, {
         maxAge: lowResourceMode ? '1d' : '1h',

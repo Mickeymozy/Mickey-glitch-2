@@ -1,0 +1,20 @@
+{
+  "id": "/download",
+  "name": "Mickey Glitch Control",
+  "short_name": "Mickey Glitch",
+  "description": "Dhibiti na fuatilia WhatsApp bots zako.",
+  "lang": "sw",
+  "start_url": "/login",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f1f5f3",
+  "theme_color": "#17352e",
+  "icons": [
+    {
+      "src": "/assets/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
