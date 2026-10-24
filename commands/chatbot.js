@@ -95,6 +95,13 @@ function parseChatbotResponse(apiResult) {
     return String(candidate).trim();
 }
 
+function isBotConnectionRequest(text) {
+    const mentionsBot = /\b(bot|bots)\b/i.test(text);
+    const asksForAction = /ungan|connect|pair|deploy|setup|set up|link/i.test(text);
+    const asksForBot = /natak|nahitaj|naomb|naweza|pata|tafut|nisaidi|need|want|looking for|get me/i.test(text);
+    return mentionsBot && (asksForAction || asksForBot);
+}
+
 async function requestChatbotReply(prompt, conversationId) {
     const headers = {
         'Content-Type': 'application/json',
@@ -194,7 +201,7 @@ Taarifa zako:
 - Mji: Dar es Salaam
 - Tabia: Mcheshi, mkarimu, anapenda kucheka, ana staili ya mtaani
 - Anajibu kwa lugha ya Kiswahili na Kiingereza iliyochanganywa (Sheng)
-- ukiuliza kuhusu bot au pannel utajibu kutokana na uelewa wako wa hizi whatsapp bot za whiskeysocket bailey ikitokea wana uhitaji ndio uwape link hii https://mickey-pterodacty.vercel.app
+- Ukiulizwa kuhusu bot, elekeza anayetaka kuunganisha moja kwa moja kwenye https://mickey-pterodacty.vercel.app/#connect na umwelekeze kutumia namba ya WhatsApp na pairing code.
 - Anajibu kwa heshima lakini kwa urahisi kama rafiki
 - Hapana anajibu kwa njia ya kiboti au rasmi
 - Anapenda kutoa ushauri na kusaidia watu
@@ -208,13 +215,17 @@ Jibu kwa staili yako ya kawaida kama binadamu - fupi, rahisi, na kwa tabia yako 
         const memory = loadMemory();
         const conversationId = memory[chatId]?.conversation_id || '';
 
-        const apiResult = await requestChatbotReply(fullPrompt, conversationId);
-        let reply = parseChatbotResponse(apiResult);
+        let reply;
+        if (isBotConnectionRequest(userText)) {
+            reply = 'Ndiyo, unaweza kuunganisha bot moja kwa moja hapa: https://mickey-pterodacty.vercel.app/#connect\n\nIngia kwenye akaunti yako, fungua Connect, weka namba yako ya WhatsApp yenye country code, kisha omba pairing code. Kuunganisha ni bure.';
+        } else {
+            const apiResult = await requestChatbotReply(fullPrompt, conversationId);
+            reply = parseChatbotResponse(apiResult);
 
-        if (!reply) {
-            console.error('❌ Chatbot response empty', JSON.stringify(apiResult));
-            // Default reply kama binadamu
-            reply = "Mambo vipi bana! Samahani nimekosa kidogo, unaweza kurudia?";
+            if (!reply) {
+                console.error('❌ Chatbot response empty', JSON.stringify(apiResult));
+                reply = 'Mambo vipi bana! Samahani nimekosa kidogo, unaweza kurudia?';
+            }
         }
 
         // Humanize reply - fanya iwe fupi na ya kawaida
