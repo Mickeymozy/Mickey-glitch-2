@@ -1,6 +1,6 @@
 'use strict';
 
-const { execFileSync } = require('node:child_process');
+const { execFileSync, spawn } = require('node:child_process');
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const os = require('node:os');
@@ -43,16 +43,69 @@ function run(command, args, options = {}) {
   }).trim();
 }
 
-function createUpdater({ runCommand = run, logger = console, stateFile = UPDATE_STATE, settings = loadSettings } = {}) {
+function isPm2Runtime() {
+  return process.env.pm_id !== undefined || Boolean(process.env.PM2_HOME || process.env.pm2);
+}
+
+function isPanelRuntime() {
+  return Boolean(
+    process.env.P_SERVER_UUID || process.env.SERVER_UUID || process.env.PTERODACTYL ||
+    process.env.P_SERVER_ALLOCATION_LIMIT || fs.existsSync('/.dockerenv')
+  );
+}
+
+function restartUpdatedApp(runCommand) {
+  if (isPm2Runtime()) {
+    const processes = JSON.parse(runCommand('pm2', ['jlist']));
+    const app = processes.find((item) => {
+      const environment = item.pm2_env || {};
+      return path.resolve(environment.pm_cwd || '') === ROOT &&
+        path.resolve(environment.pm_exec_path || '') === path.join(ROOT, 'index.js');
+    });
+    if (!app) throw new Error('PM2 haijapata process ya app kuu ya index.js.');
+    runCommand('pm2', ['restart', String(app.pm_id)], { timeout: 2 * 60 * 1000 });
+    return;
+  }
+
+  if (isPanelRuntime() || process.env.RENDER || process.env.DYNO || process.env.K_SERVICE) {
+    process.exit(1);
+    return;
+  }
+
+  const child = spawn(process.execPath, process.execArgv.concat(process.argv.slice(1)), {
+    cwd: ROOT,
+    env: process.env,
+    detached: true,
+    stdio: 'ignore'
+  });
+  child.once('error', (error) => {
+    console.error(`[AutoUpdate] Replacement process failed to start: ${error.message}`);
+    process.exit(1);
+  });
+  child.once('spawn', () => process.exit(0));
+  child.unref();
+}
+
+function createUpdater({
+  runCommand = run,
+  logger = console,
+  stateFile = UPDATE_STATE,
+  settings = loadSettings,
+  restartApp = () => restartUpdatedApp(runCommand),
+  scheduleRestart = (callback) => {
+    const timer = setTimeout(callback, 2500);
+    timer.unref();
+  }
+} = {}) {
   let running = false;
 
-  function runOnce() {
+  function runOnce({ force = false } = {}) {
     if (running) return { status: 'busy' };
     running = true;
 
     try {
       const configuration = settings();
-      if (!configuration.enabled) return { status: 'disabled' };
+      if (!configuration.enabled && !force) return { status: 'disabled' };
       if (!/^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+(?:\.git)?$/.test(configuration.repository)) {
         throw new Error('Repository URL si GitHub HTTPS URL sahihi.');
       }
@@ -61,9 +114,9 @@ function createUpdater({ runCommand = run, logger = console, stateFile = UPDATE_
       }
 
       const root = runCommand('git', ['rev-parse', '--show-toplevel']);
-      if (path.resolve(root) !== ROOT) throw new Error('PM2 cwd si root ya Git repository.');
+      if (path.resolve(root) !== ROOT) throw new Error('App startup directory si root ya Git repository.');
 
-      const changes = runCommand('git', ['status', '--porcelain']);
+      const changes = runCommand('git', ['status', '--porcelain', '--untracked-files=no']);
       if (changes) {
         logger.warn('[AutoUpdate] Kuna mabadiliko ya tracked files; update imesitishwa bila kubadilisha files.');
         return { status: 'dirty' };
@@ -86,18 +139,21 @@ function createUpdater({ runCommand = run, logger = console, stateFile = UPDATE_
         logger.info(`[AutoUpdate] Commit mpya ${commit}; inasakinisha dependencies.`);
       }
 
-      runCommand('npm', ['ci', '--omit=dev', '--no-audit', '--no-fund'], { timeout: 10 * 60 * 1000 });
-      const processes = JSON.parse(runCommand('pm2', ['jlist']));
-      const app = processes.find((item) => {
-        const environment = item.pm2_env || {};
-        return path.resolve(environment.pm_cwd || '') === ROOT &&
-          path.resolve(environment.pm_exec_path || '') === path.join(ROOT, 'index.js');
-      });
-      if (!app) throw new Error('PM2 haijapata process ya app kuu ya index.js.');
-
-      runCommand('pm2', ['restart', String(app.pm_id)], { timeout: 2 * 60 * 1000 });
+      const hasLockfile = fs.existsSync(path.join(ROOT, 'package-lock.json')) ||
+        fs.existsSync(path.join(ROOT, 'npm-shrinkwrap.json'));
+      const installArgs = hasLockfile
+        ? ['ci', '--omit=dev', '--no-audit', '--no-fund']
+        : ['install', '--omit=dev', '--no-audit', '--no-fund', '--package-lock=false'];
+      runCommand('npm', installArgs, { timeout: 10 * 60 * 1000 });
       fs.rmSync(stateFile, { force: true });
-      logger.info(`[AutoUpdate] ${pending.commit} imewekwa; PM2 imeombwa kuwasha app upya.`);
+      scheduleRestart(() => {
+        try {
+          restartApp();
+        } catch (error) {
+          logger.error(`[AutoUpdate] Restart imeshindwa: ${error.message}`);
+        }
+      });
+      logger.info(`[AutoUpdate] ${pending.commit} imewekwa; app itaombwa kuwaka upya.`);
       return { status: 'updated', commit: pending.commit };
     } catch (error) {
       logger.error(`[AutoUpdate] Update haikukamilika; itajaribiwa tena: ${error.message}`);
@@ -128,6 +184,15 @@ function start() {
     : '[AutoUpdate] Imezimwa kupitia VPS_AUTO_UPDATE_ENABLED; itaendelea kuangalia mabadiliko ya settings.');
 }
 
+function startPanel() {
+  if (isPm2Runtime() || process.env.VERCEL === '1' || process.env.RENDER ||
+  process.env.DYNO || process.env.K_SERVICE || !isPanelRuntime() ||
+  !fs.existsSync(path.join(ROOT, '.git'))) {
+    return null;
+  }
+  return start();
+}
+
 if (require.main === module) start();
 
-module.exports = { createUpdater, start };
+module.exports = { createUpdater, start, startPanel };

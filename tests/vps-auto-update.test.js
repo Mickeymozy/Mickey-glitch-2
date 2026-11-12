@@ -38,20 +38,22 @@ test('VPS updater leaves a working tree with tracked changes untouched', () => {
   assert.equal(calls.length, 2);
 });
 
-test('VPS updater fast-forwards, installs dependencies, then asks PM2 to restart', () => {
+test('updater fast-forwards, installs dependencies, then requests a host restart', () => {
   const stateFile = temporaryStateFile();
   const calls = [];
+  let restartRequested = false;
   const updater = createUpdater({
     stateFile,
     settings: enabledSettings,
     logger: { warn() {}, info() {}, error() {} },
+    restartApp() { restartRequested = true; },
+    scheduleRestart(callback) { callback(); },
     runCommand(command, args) {
       calls.push([command, args]);
       if (args[0] === 'rev-parse' && args[1] === '--show-toplevel') return repoRoot;
       if (args[0] === 'status') return '';
       if (args[0] === 'rev-list') return '1';
       if (args[0] === 'rev-parse' && args[1] === 'HEAD') return 'abc123';
-      if (command === 'pm2' && args[0] === 'jlist') return JSON.stringify([{ pm2_env: { pm_cwd: repoRoot, pm_exec_path: path.join(repoRoot, 'index.js'), pm_id: 4 } }]);
       return '';
     }
   });
@@ -59,11 +61,10 @@ test('VPS updater fast-forwards, installs dependencies, then asks PM2 to restart
   try {
     const result = updater.runOnce();
     assert.deepEqual(result, { status: 'updated', commit: 'abc123' });
-    assert.deepEqual(calls.map(([command]) => command), ['git', 'git', 'git', 'git', 'git', 'git', 'npm', 'pm2', 'pm2']);
+    assert.deepEqual(calls.map(([command]) => command), ['git', 'git', 'git', 'git', 'git', 'git', 'npm']);
     assert.equal(calls[3][1][0], 'merge');
-    assert.equal(calls[6][1][0], 'ci');
-    assert.deepEqual(calls[7][1], ['jlist']);
-    assert.deepEqual(calls[8][1], ['restart', '4']);
+    assert.equal(calls[6][1][0], 'install');
+    assert.equal(restartRequested, true);
     assert.equal(fs.existsSync(stateFile), false);
   } finally {
     fs.rmSync(stateFile, { force: true });
@@ -78,6 +79,7 @@ test('VPS updater retries dependency installation after a failed install', () =>
     stateFile,
     settings: enabledSettings,
     logger: { warn() {}, info() {}, error() {} },
+    restartApp() {},
     runCommand(command, args) {
       calls.push([command, args]);
       if (args[0] === 'rev-parse' && args[1] === '--show-toplevel') return repoRoot;
@@ -104,17 +106,20 @@ test('VPS updater retries dependency installation after a failed install', () =>
   }
 });
 
-test('VPS updater does not run Git commands when disabled', () => {
+test('updater skips automatic checks when disabled but allows a manual update', () => {
   let commandCount = 0;
   const updater = createUpdater({
     stateFile: temporaryStateFile(),
     settings: () => ({ ...enabledSettings(), enabled: false }),
     runCommand() {
       commandCount += 1;
-      throw new Error('Disabled updater must not call system commands.');
+      if (commandCount <= 4) return commandCount === 1 ? repoRoot : '';
+      throw new Error('Manual check should stop when no commit is pending.');
     }
   });
 
   assert.equal(updater.runOnce().status, 'disabled');
   assert.equal(commandCount, 0);
+  assert.equal(updater.runOnce({ force: true }).status, 'current');
+  assert.equal(commandCount, 4);
 });

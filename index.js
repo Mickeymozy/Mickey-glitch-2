@@ -29,9 +29,9 @@ const ADMIN_ENV_DEFINITIONS = [
     { key: 'PORT', required: false, secret: false, restart: true, description: 'Port ya server.' },
     { key: 'HOST', required: false, secret: false, restart: true, description: 'Host interface ya server.' },
     { key: 'PUBLIC_HOST', required: false, secret: false, restart: false, description: 'Public hostname ya server.' },
-    { key: 'VPS_AUTO_UPDATE_ENABLED', required: false, secret: false, restart: true, description: 'Weka false kuzima auto update ya VPS.' },
+    { key: 'VPS_AUTO_UPDATE_ENABLED', required: false, secret: false, restart: true, description: 'Weka false kuzima auto update.' },
     { key: 'VPS_AUTO_UPDATE_REPOSITORY', required: false, secret: false, restart: true, description: 'HTTPS GitHub repository ya auto update.' },
-    { key: 'VPS_AUTO_UPDATE_BRANCH', required: false, secret: false, restart: true, description: 'Branch ya GitHub inayofuatiliwa na VPS.' },
+    { key: 'VPS_AUTO_UPDATE_BRANCH', required: false, secret: false, restart: true, description: 'Branch ya GitHub inayofuatiliwa.' },
     { key: 'VPS_AUTO_UPDATE_INTERVAL_MS', required: false, secret: false, restart: true, description: 'Muda kati ya checks za GitHub, milliseconds.' },
     { key: 'VPS_AUTO_UPDATE_START_DELAY_MS', required: false, secret: false, restart: true, description: 'Kuchelewesha check ya kwanza baada ya startup, milliseconds.' }
 ];
@@ -394,6 +394,7 @@ function loadCommandRegistry() {
 }
 
 const commands = loadCommandRegistry();
+require('./scripts/vps-auto-update').startPanel();
 
 
 /* =========================================================
@@ -479,6 +480,7 @@ const {
 const {
     handleLinkDetection
 } = require('./commands/antilink');
+const { createWindowRateLimiter } = require('./lib/rateLimit');
 
 
 /* =========================================================
@@ -511,6 +513,15 @@ app.use(
 app.set('trust proxy', 1);
 axios.defaults.maxContentLength = maxMediaBytes;
 axios.defaults.maxBodyLength = maxMediaBytes;
+
+const apiRateLimit = createWindowRateLimiter({
+    limit: lowResourceMode ? 120 : 300,
+    windowMs: 60_000,
+    keyGenerator: (req) => req.ip || req.socket.remoteAddress,
+    message: 'Too many requests. Try again shortly.',
+    resetOnSuccess: false
+});
+app.use('/api', apiRateLimit);
 
 const io = socketIo(server, {
     cors: {
@@ -1102,11 +1113,18 @@ const ADMIN_TOKEN = String(process.env.ADMIN_TOKEN || '').trim();
    AUTH ROUTES
 ========================================================= */
 
-app.post('/api/auth/admin-phone-login', requirePersistence, async (req, res) => {
+const authLoginRateLimit = createWindowRateLimiter({
+    limit: 10,
+    windowMs: 15 * 60 * 1000,
+    keyGenerator: (req) => req.ip || req.socket.remoteAddress,
+    message: 'Maombi mengi ya kuingia. Jaribu tena baada ya dakika chache.'
+});
+
+app.post('/api/auth/admin-phone-login', authLoginRateLimit, requirePersistence, async (req, res) => {
     return res.status(410).json({ error: 'Admin phone login imezimwa. Tumia email na password ya admin.' });
 });
 
-app.post('/api/auth/admin-email-login', requirePersistence, async (req, res) => {
+app.post('/api/auth/admin-email-login', authLoginRateLimit, requirePersistence, async (req, res) => {
     const email = String(req.body?.email || '').trim().toLowerCase();
     const password = String(req.body?.password || '').trim();
 
@@ -1139,7 +1157,7 @@ app.post('/api/auth/admin-email-login', requirePersistence, async (req, res) => 
 });
 
 // User login
-app.post('/api/auth/login', requirePersistence, async (req, res) => {
+app.post('/api/auth/login', authLoginRateLimit, requirePersistence, async (req, res) => {
     const phone = normalizeAccountLoginId(
         req.body?.phone ?? req.body?.phoneNumber ?? req.body?.number ?? req.body?.accountPhone
     );
@@ -2546,27 +2564,6 @@ if (process.env.OPENAI_API_KEY) {
 /* =========================================================
    EXPRESS
 ========================================================= */
-
-const requestWindow = new Map();
-app.use('/api', (req, res, next) => {
-    const now = Date.now();
-    const key = req.ip || req.socket.remoteAddress || 'unknown';
-    const current = requestWindow.get(key);
-
-    if (!current || now - current.startedAt >= 60_000) {
-        requestWindow.set(key, { startedAt: now, count: 1 });
-        return next();
-    }
-
-    current.count += 1;
-    if (current.count > (lowResourceMode ? 120 : 300)) {
-        return res.status(429).json({
-            error: 'Too many requests. Try again shortly.'
-        });
-    }
-
-    return next();
-});
 
 app.get('/admin.html', (req, res) => res.redirect('/admin'));
 
@@ -4467,6 +4464,18 @@ class BotSession {
                                                 ),
                                                 'error'
                                             );
+
+                                            try {
+                                                await this.sock.sendMessage(from, {
+                                                    text: 'Command imeshindwa. Jaribu tena baadaye au wasiliana na admin.'
+                                                });
+                                            } catch (notificationError) {
+                                                this.sendLog(
+                                                    `Failed to notify chat about command error (${commandName}): ` +
+                                                    (notificationError?.message || String(notificationError)),
+                                                    'error'
+                                                );
+                                            }
                                         }
                                     }
 

@@ -1,6 +1,6 @@
 # VPS GitHub Auto Update
 
-The PM2 ecosystem starts a separate `mickey-glitch-auto-updater` process. It checks the `main` branch of `https://github.com/Mickeymozy/Mickey-glitch-2` every five minutes, waits one minute after startup before the first check, fast-forwards a clean checkout, runs `npm ci --omit=dev`, then restarts the ecosystem.
+PM2 starts a separate updater process. Pterodactyl-style panel deployments with a Git checkout run the updater inside the app process, so no extra panel process is needed. Both check the configured GitHub branch every five minutes, wait one minute before the first check, fast-forward a clean checkout, install production dependencies, then ask the host to restart the app. The `.update` WhatsApp command uses the same updater. Docker builds in this repository omit `.git`, so they do not enable automatic polling.
 
 ## Enable on a VPS
 
@@ -8,14 +8,18 @@ Run these commands from a Git clone of the repository on the VPS, with Node.js, 
 
 ```sh
 cd /path/to/Mickey-glitch-2
-npm ci
+npm install --omit=dev
 pm2 start ecosystem.config.js
 pm2 save
 ```
 
 For an existing PM2 deployment, use `pm2 startOrReload ecosystem.config.js --update-env` so PM2 starts the updater process too. Confirm both processes with `pm2 status` and inspect updater output with `pm2 logs mickey-glitch-auto-updater`.
 
-The checkout must be clean and able to fast-forward from the configured branch. The updater will not overwrite tracked local changes, perform a merge commit, or reset a diverged checkout. Keep `.env`, session/authentication folders, and user data outside Git tracking.
+The checkout must be a Git clone with `git`, Node.js, npm, and an enabled restart-on-failure policy in the panel. Set the panel startup command to `npm start` and enable auto-restart. The updater will not overwrite tracked local changes, perform a merge commit, or reset a diverged checkout. Untracked session files are left untouched. If a lockfile exists, it uses `npm ci`; otherwise it uses `npm install` without generating one.
+
+## Panel Setup
+
+Clone the repository into the panel server's working directory, install dependencies, and start the server with `npm start`. Set the update variables in the panel environment. The app detects common Pterodactyl/container environment markers and starts polling automatically. The `.update` command can also trigger a one-time check; it is restricted to the owner or sudo users.
 
 ## Configuration
 
@@ -27,4 +31,4 @@ Set these variables in `.env` or in Admin → Environment to customize the updat
 - `VPS_AUTO_UPDATE_INTERVAL_MS=300000` changes the polling interval (minimum 30 seconds).
 - `VPS_AUTO_UPDATE_START_DELAY_MS=60000` changes the initial delay.
 
-After changing variables, run `pm2 startOrReload ecosystem.config.js --update-env`. Render, Vercel, and plain `npm start` deployments do not start this PM2-only updater.
+After changing variables on PM2, run `pm2 startOrReload ecosystem.config.js --update-env`. Render and Vercel deployments remain excluded; plain `npm start` outside a detected panel does not start polling.

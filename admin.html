@@ -447,7 +447,18 @@
         .catch((error) => setStatus(error.message, 'error'))
         .finally(() => { roleButton.disabled = false; });
     });
-    $('refreshButton').addEventListener('click', () => loadOverview().catch((error) => setStatus(error.message, 'error')));
+    $('refreshButton').addEventListener('click', async () => {
+      const button = $('refreshButton');
+      button.disabled = true;
+      try {
+        await Promise.all([loadOverview(), loadOperations()]);
+        setStatus('Taarifa zimesasishwa.', 'success');
+      } catch (error) {
+        setStatus(error.message, 'error');
+      } finally {
+        button.disabled = false;
+      }
+    });
     $('refreshOperationsButton').addEventListener('click', () => loadOperations().catch((error) => setStatus(error.message, 'error')));
     $('featureControls').addEventListener('change', async (event) => {
       const control = event.target.closest('[data-feature]');
@@ -616,7 +627,12 @@
 
     loadOverview().catch((error) => setStatus(error.message, 'error'));
     window.setInterval(() => {
-      if (!$('operationsView').hidden) loadOperations().catch(() => {});
+      if (!$('operationsView').hidden) {
+        loadOperations().catch((error) => {
+          $('healthStatus').textContent = 'Hitilafu';
+          setStatus(`Health check imeshindwa: ${error.message}`, 'error');
+        });
+      }
     }, 15000);
   </script>
 </body>
